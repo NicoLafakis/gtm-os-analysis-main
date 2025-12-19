@@ -1,5 +1,7 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+
+const STORAGE_KEY = 'gtm-diagnostic-session';
 
 const signalVendors = [
   { id: "clay", name: "Clay", logo: "https://logo.clearbit.com/clay.com" },
@@ -42,6 +44,95 @@ export default function Home() {
   const [products, setProducts] = useState<string[]>([]);
   const [selectedProduct, setSelectedProduct] = useState("");
   const [productsLoading, setProductsLoading] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [errorToast, setErrorToast] = useState<string | null>(null);
+
+  // Load session from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const data = JSON.parse(saved);
+        if (data.currentStep !== undefined) setCurrentStep(data.currentStep);
+        if (data.websiteUrl) setWebsiteUrl(data.websiteUrl);
+        if (data.domain) setDomain(data.domain);
+        if (data.email) setEmail(data.email);
+        if (data.companyName) setCompanyName(data.companyName);
+        if (data.role) setRole(data.role);
+        if (data.companySize) setCompanySize(data.companySize);
+        if (data.crm) setCrm(data.crm);
+        if (data.selectedVendors) setSelectedVendors(data.selectedVendors);
+        if (data.selectedSignals) setSelectedSignals(data.selectedSignals);
+        if (data.alignment) setAlignment(data.alignment);
+        if (data.research) setResearch(data.research);
+        if (data.reportData) setReportData(data.reportData);
+        if (data.contactId) setContactId(data.contactId);
+        if (data.products) setProducts(data.products);
+        if (data.selectedProduct) setSelectedProduct(data.selectedProduct);
+      }
+    } catch (e) {
+      console.error('Failed to load session:', e);
+    }
+    setIsHydrated(true);
+  }, []);
+
+  // Save session to localStorage when state changes
+  useEffect(() => {
+    if (!isHydrated) return;
+    try {
+      const data = {
+        currentStep,
+        websiteUrl,
+        domain,
+        email,
+        companyName,
+        role,
+        companySize,
+        crm,
+        selectedVendors,
+        selectedSignals,
+        alignment,
+        research,
+        reportData,
+        contactId,
+        products,
+        selectedProduct,
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch (e) {
+      console.error('Failed to save session:', e);
+    }
+  }, [isHydrated, currentStep, websiteUrl, domain, email, companyName, role, companySize, crm, selectedVendors, selectedSignals, alignment, research, reportData, contactId, products, selectedProduct]);
+
+  const clearSession = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEY);
+    setCurrentStep(0);
+    setWebsiteUrl("");
+    setDomain("");
+    setEmail("");
+    setCompanyName("");
+    setRole("");
+    setCompanySize("");
+    setCrm("");
+    setSelectedVendors([]);
+    setSelectedSignals([]);
+    setAlignment({});
+    setResearch({
+      company: { initial: "", feedback: "", refined: "", loading: false },
+      icp: { initial: "", feedback: "", refined: "", loading: false },
+      competitive: { initial: "", feedback: "", refined: "", loading: false },
+      content: { initial: "", feedback: "", refined: "", loading: false }
+    });
+    setReportData(null);
+    setContactId(null);
+    setProducts([]);
+    setSelectedProduct("");
+  }, []);
+
+  const showError = useCallback((message: string) => {
+    setErrorToast(message);
+    setTimeout(() => setErrorToast(null), 5000);
+  }, []);
 
   const cleanResponse = (text: string) => {
     if (!text) return "";
@@ -360,38 +451,74 @@ RULES:
   const parsePersonas = (content: string[]) => {
     const personas: {title: string; goal: string; jtbd: string}[] = [];
     const fullText = content.join(" ");
-    
+
+    // Try primary format: PERSONA:/GOAL:/JTBD:
     const chunks = fullText.split(/(?=PERSONA:)/i).filter(chunk => chunk.trim() && chunk.toLowerCase().includes('persona:'));
-    
+
     chunks.forEach(chunk => {
       const persona = { title: "", goal: "", jtbd: "" };
-      
+
       const titleMatch = chunk.match(/PERSONA:\s*([^]*?)(?=\s*GOAL:|$)/i);
       if (titleMatch) {
         persona.title = titleMatch[1].trim().replace(/\s+/g, ' ');
       }
-      
+
       const goalMatch = chunk.match(/GOAL:\s*([^]*?)(?=\s*JTBD:|$)/i);
       if (goalMatch) {
         persona.goal = goalMatch[1].trim().replace(/\s+/g, ' ');
       }
-      
+
       const jtbdMatch = chunk.match(/JTBD:\s*([^]*?)$/i);
       if (jtbdMatch) {
         let jtbd = jtbdMatch[1].trim();
         jtbd = jtbd.split(/PERSONA:/i)[0].trim();
         persona.jtbd = jtbd.replace(/\s+/g, ' ');
       }
-      
+
       if (persona.title && persona.title.length > 2) {
         personas.push(persona);
       }
     });
-    
+
+    // Fallback: Try numbered list format (1. Title - description)
+    if (personas.length === 0) {
+      const numberedMatches = fullText.match(/\d+\.\s*([^:\n]+?)(?:\s*[-–:]\s*([^\n]+))?/g);
+      if (numberedMatches && numberedMatches.length > 0) {
+        numberedMatches.slice(0, 4).forEach(match => {
+          const parts = match.replace(/^\d+\.\s*/, '').split(/\s*[-–:]\s*/);
+          if (parts[0] && parts[0].length > 2) {
+            personas.push({
+              title: parts[0].trim(),
+              goal: parts[1]?.trim() || "",
+              jtbd: ""
+            });
+          }
+        });
+      }
+    }
+
+    // Fallback: Try bullet point format
+    if (personas.length === 0) {
+      const bulletMatches = fullText.match(/[•\-\*]\s*([^•\-\*\n]+)/g);
+      if (bulletMatches && bulletMatches.length > 0) {
+        bulletMatches.slice(0, 4).forEach(match => {
+          const text = match.replace(/^[•\-\*]\s*/, '').trim();
+          if (text.length > 5) {
+            personas.push({
+              title: text.split(/\s*[-–:]\s*/)[0] || text.substring(0, 50),
+              goal: text.split(/\s*[-–:]\s*/)[1] || "",
+              jtbd: ""
+            });
+          }
+        });
+      }
+    }
+
+    // Final fallback: generic placeholder
     if (personas.length === 0) {
       return [{ title: "Key Buyer Persona", goal: content.join(" ").substring(0, 200), jtbd: "" }];
     }
-    
+
     return personas;
   };
 
@@ -399,7 +526,7 @@ RULES:
   const prevStep = () => { if (currentStep > 0) setCurrentStep(currentStep - 1); };
 
   const startDiagnostic = async () => {
-    if (!websiteUrl) { alert("Please enter URL"); return; }
+    if (!websiteUrl) { showError("Please enter a website URL"); return; }
     const d = websiteUrl.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
     setDomain(d);
     setProductsLoading(true);
@@ -422,12 +549,35 @@ RULES:
 - Just the product/service names, no descriptions
 - No preamble, just the numbered list`);
       
-      // Parse the numbered list
-      const parsed = result.split('\n')
-.map((line: string) => line.replace(/^\d+[\.\)]\s*/, '').trim())
-.filter((line: string) => line.length > 0 && line.length < 100);
-      
-      setProducts(parsed.length > 0 ? parsed : [d]);
+      // Parse the product list with multiple format support
+      let parsed: string[] = [];
+
+      // Try numbered list format (1. Product, 2. Product)
+      const numberedLines = result.match(/^\d+[\.\)]\s*.+$/gm);
+      if (numberedLines && numberedLines.length > 0) {
+        parsed = numberedLines
+          .map((line: string) => line.replace(/^\d+[\.\)]\s*/, '').trim())
+          .filter((line: string) => line.length > 0 && line.length < 100);
+      }
+
+      // Fallback: Try bullet points
+      if (parsed.length === 0) {
+        const bulletLines = result.match(/^[•\-\*]\s*.+$/gm);
+        if (bulletLines && bulletLines.length > 0) {
+          parsed = bulletLines
+            .map((line: string) => line.replace(/^[•\-\*]\s*/, '').trim())
+            .filter((line: string) => line.length > 0 && line.length < 100);
+        }
+      }
+
+      // Fallback: Split on newlines and filter
+      if (parsed.length === 0) {
+        parsed = result.split('\n')
+          .map((line: string) => line.replace(/^\d+[\.\)]\s*/, '').replace(/^[•\-\*]\s*/, '').trim())
+          .filter((line: string) => line.length > 2 && line.length < 100 && !line.toLowerCase().includes('product') && !line.toLowerCase().includes('here'));
+      }
+
+      setProducts(parsed.length > 0 ? parsed.slice(0, 8) : [d]);
     } catch (e) {
       setProducts([d]);
     }
@@ -435,7 +585,7 @@ RULES:
   };
 
   const saveBasicAndNext = async () => {
-    if (!email) { alert("Please enter email"); return; }
+    if (!email) { showError("Please enter your email"); return; }
     
     // Send contact data to HubSpot
     try {
@@ -600,7 +750,7 @@ NO PREAMBLE. Start with paragraph 1.`);
         <div className="flex gap-3 mt-7">
           <button onClick={prevStep} className="bg-white/5 border border-white/15 text-white py-4 px-8 rounded-lg font-medium hover:bg-white/10 transition-all">← Back</button>
           <button 
-            onClick={() => { if (selectedProduct) nextStep(); else alert("Please select a product"); }}
+            onClick={() => { if (selectedProduct) nextStep(); else showError("Please select a product to analyze"); }}
             className="flex-1 bg-gradient-to-r from-rose-500 to-rose-600 text-white py-4 px-8 rounded-lg font-semibold hover:shadow-lg hover:shadow-rose-500/30 transition-all"
           >Continue →</button>
         </div>
@@ -796,18 +946,88 @@ Use the same ALL CAPS headers as the original. Write TO them using "you/your". N
 
     const parseCompetitors = () => {
       const text = reportData.competitive || "";
-      const lines = text.split('\n').filter(l => l.includes('|') && !l.includes('Competitor'));
-      return lines.slice(0, 5).map(line => {
-        const parts = line.split('|').map(p => p.trim());
-        return { name: parts[0] || "", strength: parts[1] || "", weakness: parts[2] || "", youWin: parts[3] || "" };
-      });
+      const competitors: {name: string; strength: string; weakness: string; youWin: string}[] = [];
+
+      // Try pipe-separated format first
+      const pipeLines = text.split('\n').filter(l => l.includes('|') && !l.toLowerCase().includes('competitor') && !l.match(/^[\s\-:|]+$/));
+      if (pipeLines.length > 0) {
+        pipeLines.slice(0, 5).forEach(line => {
+          const parts = line.split('|').map(p => p.trim()).filter(p => p.length > 0);
+          if (parts.length >= 2 && parts[0].length < 50) {
+            competitors.push({
+              name: parts[0] || "",
+              strength: parts[1] || "",
+              weakness: parts[2] || "",
+              youWin: parts[3] || ""
+            });
+          }
+        });
+      }
+
+      // Fallback: Try numbered list with competitor names
+      if (competitors.length === 0) {
+        const numberedMatches = text.match(/\d+\.\s*([^\n:]+?)(?:\s*[-–:]\s*([^\n]+))?/g);
+        if (numberedMatches && numberedMatches.length > 0) {
+          numberedMatches.slice(0, 5).forEach(match => {
+            const parts = match.replace(/^\d+\.\s*/, '').split(/\s*[-–:]\s*/);
+            if (parts[0] && parts[0].length > 2 && parts[0].length < 50) {
+              competitors.push({
+                name: parts[0].trim(),
+                strength: parts[1]?.trim() || "Established player",
+                weakness: "",
+                youWin: ""
+              });
+            }
+          });
+        }
+      }
+
+      // Fallback: Look for company-like words
+      if (competitors.length === 0) {
+        const companyPatterns = text.match(/(?:vs\.?|versus|competitor|alternative)[\s:]+([A-Z][a-zA-Z0-9\s&]+?)(?:[,.\n]|$)/gi);
+        if (companyPatterns) {
+          companyPatterns.slice(0, 5).forEach(match => {
+            const name = match.replace(/^(?:vs\.?|versus|competitor|alternative)[\s:]*/i, '').trim();
+            if (name.length > 2 && name.length < 40) {
+              competitors.push({ name, strength: "", weakness: "", youWin: "" });
+            }
+          });
+        }
+      }
+
+      return competitors;
     };
 
     const competitors = parseCompetitors();
     
-    const downloadPDF = () => {
+    const downloadReport = () => {
       const safeClean = (text: string) => text ? cleanResponse(text) : "(No data)";
-      const content = `GTM OPERATING SYSTEM DIAGNOSTIC\nFor: ${companyName || domain} - ${selectedProduct}\nGenerated by Smoke Signals AI\n\nEXECUTIVE NARRATIVE\n${safeClean(reportData?.narrative)}\n\nICP & PERSONAS\n${safeClean(reportData?.icp)}\n\nCOMPETITIVE LANDSCAPE\n${safeClean(reportData?.competitive)}\n\nCONTENT STRATEGY\n${safeClean(reportData?.content)}`;
+      const content = `GTM OPERATING SYSTEM DIAGNOSTIC
+================================================================================
+For: ${companyName || domain} - ${selectedProduct}
+Generated by Smoke Signals AI
+Date: ${new Date().toLocaleDateString()}
+
+================================================================================
+EXECUTIVE NARRATIVE
+================================================================================
+${safeClean(reportData?.narrative)}
+
+================================================================================
+ICP & PERSONAS
+================================================================================
+${safeClean(reportData?.icp)}
+
+================================================================================
+COMPETITIVE LANDSCAPE
+================================================================================
+${safeClean(reportData?.competitive)}
+
+================================================================================
+CONTENT STRATEGY
+================================================================================
+${safeClean(reportData?.content)}
+`;
       const blob = new Blob([content], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -826,8 +1046,8 @@ Use the same ALL CAPS headers as the original. Write TO them using "you/your". N
           <div className="text-4xl mb-3">📊</div>
           <h2 className="font-bold text-2xl mb-1">{companyName || domain}</h2>
           <p className="text-rose-400 font-medium">{selectedProduct}</p>
-          <button onClick={downloadPDF} className="mt-4 bg-white/10 border border-white/20 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-white/15 transition-all">
-            Download Report
+          <button onClick={downloadReport} className="mt-4 bg-white/10 border border-white/20 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-white/15 transition-all">
+            Download Report (.txt)
           </button>
         </div>
 
@@ -901,13 +1121,39 @@ Use the same ALL CAPS headers as the original. Write TO them using "you/your". N
 
   const step = steps[currentStep];
 
+  // Show loading state while hydrating from localStorage
+  if (!isHydrated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 text-white flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-white/10 border-t-rose-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 text-white" style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+      {/* Error Toast */}
+      {errorToast && (
+        <div className="fixed top-4 right-4 z-50 bg-red-500/90 text-white px-5 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-in slide-in-from-top-2">
+          <span className="text-lg">⚠️</span>
+          <span>{errorToast}</span>
+          <button onClick={() => setErrorToast(null)} className="ml-2 hover:text-white/80">✕</button>
+        </div>
+      )}
+
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-8">
           <img src="https://smokesignals.ai/hs-fs/hubfs/Smoke_Signals/img/smokesignal-logo.png" alt="Smoke Signals AI" className="h-10 mx-auto mb-4" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           <h1 className="text-3xl font-bold">GTM Operating System Diagnostic</h1>
           <p className="text-white/60 mt-2">AI-powered analysis of your go-to-market engine</p>
+          {currentStep > 0 && (
+            <button
+              onClick={clearSession}
+              className="mt-3 text-sm text-white/40 hover:text-white/70 transition-colors"
+            >
+              ← Start Over
+            </button>
+          )}
         </div>
         {renderStepIndicator()}
         {step === "intro" && renderIntro()}
