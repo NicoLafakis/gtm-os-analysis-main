@@ -370,7 +370,7 @@ RULES:
       
       return (
         <div key={i} className="mb-6 pb-5 border-b border-white/10 last:border-0">
-          {sec.title && <div className="text-xs font-semibold text-rose-500 uppercase tracking-wider mb-3">{sec.title}</div>}
+          {sec.title && <div className="text-xs font-semibold text-[#ff6f20] uppercase tracking-wider mb-3">{sec.title}</div>}
           <div className="text-white/90 leading-relaxed">
             {hasSignalTable && (
               <>
@@ -395,11 +395,11 @@ RULES:
             )}
             {hasCompetitorTable && (
               <>
-                <div className="grid grid-cols-4 gap-3 py-3 border-b-2 border-rose-500/50 text-xs font-bold uppercase tracking-wide mb-2">
+                <div className="grid grid-cols-4 gap-3 py-3 border-b-2 border-[#ff6f20]/50 text-xs font-bold uppercase tracking-wide mb-2">
                   <span className="text-white">Competitor</span>
                   <span className="text-green-400">Their Strength</span>
                   <span className="text-orange-400">Their Weakness</span>
-                  <span className="text-rose-400">Where You Win</span>
+                  <span className="text-[#ff8f50]">Where You Win</span>
                 </div>
                 {sec.content.map((line, j) => {
                   if (!line.includes("|")) return null;
@@ -412,7 +412,7 @@ RULES:
                       <span className="font-semibold text-white">{competitorName}</span>
                       <span className="text-green-400">{parts[1] || "—"}</span>
                       <span className="text-orange-400">{parts[2] || "—"}</span>
-                      <span className="text-rose-400 font-medium">{parts[3] || "—"}</span>
+                      <span className="text-[#ff8f50] font-medium">{parts[3] || "—"}</span>
                     </div>
                   );
                 })}
@@ -421,17 +421,17 @@ RULES:
             {isPersonaSection && (
               <div className="space-y-4">
                 {parsePersonas(sec.content).map((persona, j) => (
-                  <div key={j} className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 border border-purple-500/30 rounded-xl p-5">
+                  <div key={j} className="bg-gradient-to-br from-[#5b2e5e]/10 to-[#5b2e5e]/5 border border-[#5b2e5e]/30 rounded-xl p-5">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 bg-purple-500/20 rounded-full flex items-center justify-center text-lg">👤</div>
+                      <div className="w-10 h-10 bg-[#5b2e5e]/20 rounded-full flex items-center justify-center text-lg">👤</div>
                       <div>
-                        <div className="font-semibold text-purple-400">{persona.title}</div>
+                        <div className="font-semibold text-[#7a3d7d]">{persona.title}</div>
                         {persona.goal && <div className="text-sm text-white/60">{persona.goal}</div>}
                       </div>
                     </div>
                     {persona.jtbd && (
                       <div className="bg-black/20 rounded-lg p-4 mt-3">
-                        <div className="text-xs text-purple-400 uppercase tracking-wide mb-2">Job to Be Done</div>
+                        <div className="text-xs text-[#7a3d7d] uppercase tracking-wide mb-2">Job to Be Done</div>
                         <p className="text-sm italic text-white/80">&quot;{persona.jtbd}&quot;</p>
                       </div>
                     )}
@@ -702,7 +702,7 @@ NO PREAMBLE. Start with paragraph 1.`);
   const renderStepIndicator = () => (
     <div className="flex justify-center gap-1.5 mb-7">
       {steps.map((_, i) => (
-        <div key={i} className={`w-2.5 h-2.5 rounded-full transition-all ${i < currentStep ? "bg-green-500" : i === currentStep ? "bg-rose-500 scale-125" : "bg-white/15"}`} />
+        <div key={i} className={`w-2.5 h-2.5 rounded-full transition-all ${i < currentStep ? "bg-green-500" : i === currentStep ? "bg-[#ff6f20] scale-125" : "bg-white/15"}`} />
       ))}
     </div>
   );
@@ -713,8 +713,8 @@ NO PREAMBLE. Start with paragraph 1.`);
       <h2 className="font-bold text-2xl mb-3">Get Your Custom GTM Analysis</h2>
       <p className="text-white/60 mb-8 max-w-md mx-auto">Enter your website for AI-powered analysis of your company, customers, and competitors.</p>
       <div className="max-w-sm mx-auto">
-        <input type="url" placeholder="https://yourcompany.com" value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} className="w-full bg-white/5 border border-white/15 rounded-lg px-4 py-4 text-white text-center mb-4 outline-none focus:border-rose-500" />
-        <button onClick={startDiagnostic} className="w-full bg-gradient-to-r from-rose-500 to-rose-600 text-white py-4 px-8 rounded-lg font-semibold hover:shadow-lg hover:shadow-rose-500/30 transition-all">Start Analysis →</button>
+        <input type="url" placeholder="https://yourcompany.com" value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} className="w-full bg-white/5 border border-white/15 rounded-lg px-4 py-4 text-white text-center mb-4 outline-none focus:border-[#ff6f20]" />
+        <button onClick={startDiagnostic} className="w-full bg-gradient-to-r from-[#ff6f20] to-[#e56318] text-white py-4 px-8 rounded-lg font-semibold hover:shadow-lg hover:shadow-[#ff6f20]/30 transition-all">Start Analysis →</button>
       </div>
       <p className="mt-6 text-sm text-white/40">5-7 minutes • AI research • PDF report</p>
     </div>
@@ -724,7 +724,7 @@ NO PREAMBLE. Start with paragraph 1.`);
       return (
         <div className="bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm p-11">
           <div className="text-center py-12">
-            <div className="w-12 h-12 border-4 border-white/10 border-t-rose-500 rounded-full animate-spin mx-auto mb-5" />
+            <div className="w-12 h-12 border-4 border-white/10 border-t-[#ff6f20] rounded-full animate-spin mx-auto mb-5" />
             <h3 className="font-semibold text-xl mb-2">Analyzing {domain}</h3>
             <p className="text-white/60">Identifying products and offerings...</p>
           </div>
@@ -741,7 +741,7 @@ NO PREAMBLE. Start with paragraph 1.`);
             <div
               key={i}
               onClick={() => setSelectedProduct(product)}
-              className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedProduct === product ? "border-rose-500 bg-rose-500/10" : "border-white/15 bg-white/5 hover:border-rose-500/40"}`}
+              className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedProduct === product ? "border-[#ff6f20] bg-[#ff6f20]/10" : "border-white/15 bg-white/5 hover:border-[#ff6f20]/40"}`}
             >
               <div className="font-semibold">{product}</div>
             </div>
@@ -751,7 +751,7 @@ NO PREAMBLE. Start with paragraph 1.`);
           <button onClick={prevStep} className="bg-white/5 border border-white/15 text-white py-4 px-8 rounded-lg font-medium hover:bg-white/10 transition-all">← Back</button>
           <button 
             onClick={() => { if (selectedProduct) nextStep(); else showError("Please select a product to analyze"); }}
-            className="flex-1 bg-gradient-to-r from-rose-500 to-rose-600 text-white py-4 px-8 rounded-lg font-semibold hover:shadow-lg hover:shadow-rose-500/30 transition-all"
+            className="flex-1 bg-gradient-to-r from-[#ff6f20] to-[#e56318] text-white py-4 px-8 rounded-lg font-semibold hover:shadow-lg hover:shadow-[#ff6f20]/30 transition-all"
           >Continue →</button>
         </div>
       </div>
@@ -765,21 +765,21 @@ NO PREAMBLE. Start with paragraph 1.`);
       <div className="space-y-6">
         <div>
           <label className="block mb-3 font-medium">Email</label>
-          <input type="email" placeholder="you@company.com" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-white/5 border border-white/15 rounded-lg px-4 py-4 text-white outline-none focus:border-rose-500" />
+          <input type="email" placeholder="you@company.com" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-white/5 border border-white/15 rounded-lg px-4 py-4 text-white outline-none focus:border-[#ff6f20]" />
         </div>
         <div>
           <label className="block mb-3 font-medium">Company</label>
-          <input type="text" placeholder="Acme Inc" value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="w-full bg-white/5 border border-white/15 rounded-lg px-4 py-4 text-white outline-none focus:border-rose-500" />
+          <input type="text" placeholder="Acme Inc" value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="w-full bg-white/5 border border-white/15 rounded-lg px-4 py-4 text-white outline-none focus:border-[#ff6f20]" />
         </div>
         <div>
           <label className="block mb-3 font-medium">Role</label>
-          <input type="text" placeholder="VP Marketing" value={role} onChange={(e) => setRole(e.target.value)} className="w-full bg-white/5 border border-white/15 rounded-lg px-4 py-4 text-white outline-none focus:border-rose-500" />
+          <input type="text" placeholder="VP Marketing" value={role} onChange={(e) => setRole(e.target.value)} className="w-full bg-white/5 border border-white/15 rounded-lg px-4 py-4 text-white outline-none focus:border-[#ff6f20]" />
         </div>
         <div>
           <label className="block mb-3 font-medium">Company size</label>
           <div className="flex flex-wrap gap-2">
             {["1-10", "11-50", "51-200", "201-500", "500+"].map((opt) => (
-              <button key={opt} onClick={() => setCompanySize(opt)} className={`px-4 py-3 rounded-lg border-2 transition-all ${companySize === opt ? "border-rose-500 bg-rose-500/10" : "border-white/15 bg-white/5 hover:border-rose-500/40"}`}>{opt}</button>
+              <button key={opt} onClick={() => setCompanySize(opt)} className={`px-4 py-3 rounded-lg border-2 transition-all ${companySize === opt ? "border-[#ff6f20] bg-[#ff6f20]/10" : "border-white/15 bg-white/5 hover:border-[#ff6f20]/40"}`}>{opt}</button>
             ))}
           </div>
         </div>
@@ -787,14 +787,14 @@ NO PREAMBLE. Start with paragraph 1.`);
           <label className="block mb-3 font-medium">CRM</label>
           <div className="flex flex-wrap gap-2">
             {["HubSpot", "Salesforce", "Other", "None"].map((opt) => (
-              <button key={opt} onClick={() => setCrm(opt)} className={`px-4 py-3 rounded-lg border-2 transition-all ${crm === opt ? "border-rose-500 bg-rose-500/10" : "border-white/15 bg-white/5 hover:border-rose-500/40"}`}>{opt}</button>
+              <button key={opt} onClick={() => setCrm(opt)} className={`px-4 py-3 rounded-lg border-2 transition-all ${crm === opt ? "border-[#ff6f20] bg-[#ff6f20]/10" : "border-white/15 bg-white/5 hover:border-[#ff6f20]/40"}`}>{opt}</button>
             ))}
           </div>
         </div>
       </div>
       <div className="flex gap-3 mt-7">
         <button onClick={prevStep} className="bg-white/5 border border-white/15 text-white py-4 px-8 rounded-lg font-medium hover:bg-white/10 transition-all">← Back</button>
-        <button onClick={saveBasicAndNext} className="flex-1 bg-gradient-to-r from-rose-500 to-rose-600 text-white py-4 px-8 rounded-lg font-semibold hover:shadow-lg hover:shadow-rose-500/30 transition-all">Continue →</button>
+        <button onClick={saveBasicAndNext} className="flex-1 bg-gradient-to-r from-[#ff6f20] to-[#e56318] text-white py-4 px-8 rounded-lg font-semibold hover:shadow-lg hover:shadow-[#ff6f20]/30 transition-all">Continue →</button>
       </div>
     </div>
   );
@@ -805,7 +805,7 @@ NO PREAMBLE. Start with paragraph 1.`);
       return (
         <div className="bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm p-11">
           <div className="text-center py-12">
-            <div className="w-12 h-12 border-4 border-white/10 border-t-rose-500 rounded-full animate-spin mx-auto mb-5" />
+            <div className="w-12 h-12 border-4 border-white/10 border-t-[#ff6f20] rounded-full animate-spin mx-auto mb-5" />
             <h3 className="font-semibold text-xl mb-2">Analyzing {domain}</h3>
             <p className="text-white/60">Researching {title.toLowerCase()}...</p>
           </div>
@@ -816,13 +816,13 @@ NO PREAMBLE. Start with paragraph 1.`);
     const isRefined = !!r.refined;
     return (
       <div className="bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm p-11">
-        <div className={`inline-block px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wide mb-4 ${isRefined ? "bg-green-500/15 text-green-500" : "bg-rose-500/15 text-rose-500"}`}>{isRefined ? "✓ REFINED" : "INITIAL ANALYSIS"}</div>
+        <div className={`inline-block px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wide mb-4 ${isRefined ? "bg-green-500/15 text-green-500" : "bg-[#ff6f20]/15 text-[#ff6f20]"}`}>{isRefined ? "✓ REFINED" : "INITIAL ANALYSIS"}</div>
         <h2 className="font-bold text-2xl mb-2">{title}</h2>
         <p className="text-white/60 mb-2">Review and add corrections if needed.</p>
         <div className="bg-gradient-to-br from-black/40 to-black/20 border border-white/10 rounded-2xl p-7 my-6">{formatResearchOutput(displayText, phaseKey)}</div>
-        <div className="bg-gradient-to-br from-rose-500/10 to-rose-500/5 border border-rose-500/20 rounded-xl p-6 mt-6">
+        <div className="bg-gradient-to-br from-[#ff6f20]/10 to-[#ff6f20]/5 border border-[#ff6f20]/20 rounded-xl p-6 mt-6">
           <div className="font-medium mb-3">Anything to correct?</div>
-          <textarea rows={3} placeholder="e.g., We focus on enterprise..." value={r.feedback} onChange={(e) => setResearch(prev => ({ ...prev, [phaseKey]: { ...prev[phaseKey as keyof typeof prev], feedback: e.target.value } }))} className="w-full bg-white/5 border border-white/15 rounded-lg px-4 py-4 text-white outline-none focus:border-rose-500 resize-y" />
+          <textarea rows={3} placeholder="e.g., We focus on enterprise..." value={r.feedback} onChange={(e) => setResearch(prev => ({ ...prev, [phaseKey]: { ...prev[phaseKey as keyof typeof prev], feedback: e.target.value } }))} className="w-full bg-white/5 border border-white/15 rounded-lg px-4 py-4 text-white outline-none focus:border-[#ff6f20] resize-y" />
           <button onClick={async () => {
             if (!r.feedback.trim()) return;
             setResearch(prev => ({ ...prev, [phaseKey]: { ...prev[phaseKey as keyof typeof prev], loading: true } }));
@@ -852,11 +852,11 @@ ${isCompetitive ? `5. COMPETITIVE ANALYSIS SPECIAL RULES:
 Use the same ALL CAPS headers as the original. Write TO them using "you/your". No preamble - start with the first header.`;
             const refined = await callClaude(prompt);
             setResearch(prev => ({ ...prev, [phaseKey]: { ...prev[phaseKey as keyof typeof prev], refined, loading: false } }));
-          }} className="mt-3 px-6 py-3 rounded-lg border-2 border-rose-500 text-rose-500 font-semibold hover:bg-rose-500/10 transition-all">Refine</button>
+          }} className="mt-3 px-6 py-3 rounded-lg border-2 border-[#ff6f20] text-[#ff6f20] font-semibold hover:bg-[#ff6f20]/10 transition-all">Refine</button>
         </div>
         <div className="flex gap-3 mt-7">
           <button onClick={prevStep} className="bg-white/5 border border-white/15 text-white py-4 px-8 rounded-lg font-medium hover:bg-white/10 transition-all">← Back</button>
-          <button onClick={nextStep} className="flex-1 bg-gradient-to-r from-rose-500 to-rose-600 text-white py-4 px-8 rounded-lg font-semibold hover:shadow-lg hover:shadow-rose-500/30 transition-all">Looks Good →</button>
+          <button onClick={nextStep} className="flex-1 bg-gradient-to-r from-[#ff6f20] to-[#e56318] text-white py-4 px-8 rounded-lg font-semibold hover:shadow-lg hover:shadow-[#ff6f20]/30 transition-all">Looks Good →</button>
         </div>
       </div>
     );
@@ -868,20 +868,20 @@ Use the same ALL CAPS headers as the original. Write TO them using "you/your". N
       <p className="text-white/60 mb-6">Which tools detect buying signals?</p>
       <div className="grid grid-cols-3 gap-3 mb-8">
         {signalVendors.map((v) => (
-          <div key={v.id} onClick={() => setSelectedVendors(prev => prev.includes(v.id) ? prev.filter(x => x !== v.id) : [...prev, v.id])} className={`p-4 rounded-xl border-2 cursor-pointer text-center transition-all ${selectedVendors.includes(v.id) ? "border-rose-500 bg-rose-500/10" : "border-white/15 bg-white/5 hover:border-rose-500/40"}`}>
+          <div key={v.id} onClick={() => setSelectedVendors(prev => prev.includes(v.id) ? prev.filter(x => x !== v.id) : [...prev, v.id])} className={`p-4 rounded-xl border-2 cursor-pointer text-center transition-all ${selectedVendors.includes(v.id) ? "border-[#ff6f20] bg-[#ff6f20]/10" : "border-white/15 bg-white/5 hover:border-[#ff6f20]/40"}`}>
             <img src={v.logo} alt={v.name} className="w-11 h-11 object-contain rounded-lg bg-white p-1 mx-auto mb-2" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             <div className="text-xs font-semibold">{v.name}</div>
           </div>
         ))}
-        <div onClick={() => setSelectedVendors(prev => prev.includes("none") ? prev.filter(x => x !== "none") : [...prev, "none"])} className={`p-4 rounded-xl border-2 cursor-pointer text-center transition-all ${selectedVendors.includes("none") ? "border-rose-500 bg-rose-500/10" : "border-white/15 bg-white/5 hover:border-rose-500/40"}`}>
+        <div onClick={() => setSelectedVendors(prev => prev.includes("none") ? prev.filter(x => x !== "none") : [...prev, "none"])} className={`p-4 rounded-xl border-2 cursor-pointer text-center transition-all ${selectedVendors.includes("none") ? "border-[#ff6f20] bg-[#ff6f20]/10" : "border-white/15 bg-white/5 hover:border-[#ff6f20]/40"}`}>
           <div className="text-3xl mb-2">🚫</div>
           <div className="text-xs font-semibold">None</div>
         </div>
       </div>
-      <h3 className="text-lg font-semibold text-rose-500 mt-8 mb-4">What signals do you track?</h3>
+      <h3 className="text-lg font-semibold text-[#ff6f20] mt-8 mb-4">What signals do you track?</h3>
       <div className="grid grid-cols-2 gap-2">
         {signalTypes.map((s) => (
-          <div key={s.id} onClick={() => setSelectedSignals(prev => prev.includes(s.id) ? prev.filter(x => x !== s.id) : [...prev, s.id])} className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${selectedSignals.includes(s.id) ? "border-rose-500 bg-rose-500/10" : "border-white/15 bg-white/5 hover:border-rose-500/40"}`}>
+          <div key={s.id} onClick={() => setSelectedSignals(prev => prev.includes(s.id) ? prev.filter(x => x !== s.id) : [...prev, s.id])} className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${selectedSignals.includes(s.id) ? "border-[#ff6f20] bg-[#ff6f20]/10" : "border-white/15 bg-white/5 hover:border-[#ff6f20]/40"}`}>
             <div className="font-semibold text-sm">{s.label}</div>
             <div className="text-xs text-white/40">{s.desc}</div>
           </div>
@@ -889,7 +889,7 @@ Use the same ALL CAPS headers as the original. Write TO them using "you/your". N
       </div>
       <div className="flex gap-3 mt-7">
         <button onClick={prevStep} className="bg-white/5 border border-white/15 text-white py-4 px-8 rounded-lg font-medium hover:bg-white/10 transition-all">← Back</button>
-        <button onClick={nextStep} className="flex-1 bg-gradient-to-r from-rose-500 to-rose-600 text-white py-4 px-8 rounded-lg font-semibold hover:shadow-lg hover:shadow-rose-500/30 transition-all">Continue →</button>
+        <button onClick={nextStep} className="flex-1 bg-gradient-to-r from-[#ff6f20] to-[#e56318] text-white py-4 px-8 rounded-lg font-semibold hover:shadow-lg hover:shadow-[#ff6f20]/30 transition-all">Continue →</button>
       </div>
     </div>
   );
@@ -903,14 +903,14 @@ Use the same ALL CAPS headers as the original. Write TO them using "you/your". N
           <label className="block mb-3 font-medium">GTM motion?</label>
           <div className="flex flex-col gap-2">
             {[{ v: "random", l: "Random acts of GTM" }, { v: "siloed", l: "Siloed teams" }, { v: "coordinated", l: "Coordinated but gaps" }, { v: "integrated", l: "Integrated" }, { v: "unified", l: "Unified revenue engine" }].map((opt) => (
-              <button key={opt.v} onClick={() => setAlignment(prev => ({ ...prev, gtm: opt.v }))} className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-all ${alignment.gtm === opt.v ? "border-rose-500 bg-rose-500/10" : "border-white/15 bg-white/5 hover:border-rose-500/40"}`}>{opt.l}</button>
+              <button key={opt.v} onClick={() => setAlignment(prev => ({ ...prev, gtm: opt.v }))} className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-all ${alignment.gtm === opt.v ? "border-[#ff6f20] bg-[#ff6f20]/10" : "border-white/15 bg-white/5 hover:border-[#ff6f20]/40"}`}>{opt.l}</button>
             ))}
           </div>
         </div>
       </div>
       <div className="flex gap-3 mt-7">
         <button onClick={prevStep} className="bg-white/5 border border-white/15 text-white py-4 px-8 rounded-lg font-medium hover:bg-white/10 transition-all">← Back</button>
-        <button onClick={() => setCurrentStep(steps.indexOf("generating"))} className="flex-1 bg-gradient-to-r from-rose-500 to-rose-600 text-white py-4 px-8 rounded-lg font-semibold hover:shadow-lg hover:shadow-rose-500/30 transition-all">Generate Report →</button>
+        <button onClick={() => setCurrentStep(steps.indexOf("generating"))} className="flex-1 bg-gradient-to-r from-[#ff6f20] to-[#e56318] text-white py-4 px-8 rounded-lg font-semibold hover:shadow-lg hover:shadow-[#ff6f20]/30 transition-all">Generate Report →</button>
       </div>
     </div>
   );
@@ -918,7 +918,7 @@ Use the same ALL CAPS headers as the original. Write TO them using "you/your". N
   const renderGenerating = () => (
     <div className="bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm p-11">
       <div className="text-center py-12">
-        <div className="w-12 h-12 border-4 border-white/10 border-t-rose-500 rounded-full animate-spin mx-auto mb-5" />
+        <div className="w-12 h-12 border-4 border-white/10 border-t-[#ff6f20] rounded-full animate-spin mx-auto mb-5" />
         <h3 className="font-semibold text-xl mb-2">Building Your Report</h3>
         <p className="text-white/60">Synthesizing research...</p>
       </div>
@@ -1039,81 +1039,247 @@ ${safeClean(reportData?.content)}
       URL.revokeObjectURL(url);
     };
 
+    // Extract signals from ICP data for the flow visualization
+    const extractSignals = () => {
+      const icpText = reportData.icp || "";
+      const signals: string[] = [];
+      const lines = icpText.split('\n');
+      lines.forEach(line => {
+        if (line.includes('|') && !line.toLowerCase().includes('signal name')) {
+          const parts = line.split('|').map(p => p.trim());
+          if (parts[0] && parts[0].length > 2 && parts[0].length < 50) {
+            signals.push(parts[0]);
+          }
+        }
+      });
+      return signals.slice(0, 6);
+    };
+
+    const signals = extractSignals();
+    const personas = parsePersonas(cleanResponse(reportData.icp).split("\n")).slice(0, 4);
+
     return (
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-8 text-center">
-          <div className="text-4xl mb-3">📊</div>
-          <h2 className="font-bold text-2xl mb-1">{companyName || domain}</h2>
-          <p className="text-rose-400 font-medium">{selectedProduct}</p>
-          <button onClick={downloadReport} className="mt-4 bg-white/10 border border-white/20 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-white/15 transition-all">
-            Download Report (.txt)
-          </button>
-        </div>
-
-        {/* Score Cards Row */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="bg-white/5 border border-white/10 rounded-xl p-5 text-center">
-            <div className={`text-4xl font-bold mb-1 ${gradeColors[grade]}`}>{grade}</div>
-            <div className="text-white/50 text-sm">Content Grade</div>
-          </div>
-          <div className="bg-white/5 border border-white/10 rounded-xl p-5 text-center">
-            <div className="text-4xl font-bold mb-1 text-rose-400">{competitors.length}</div>
-            <div className="text-white/50 text-sm">Competitors Mapped</div>
-          </div>
-          <div className="bg-white/5 border border-white/10 rounded-xl p-5 text-center">
-            <div className="text-4xl font-bold mb-1 text-purple-400">{alignment.gtm || "—"}</div>
-            <div className="text-white/50 text-sm">GTM Stage</div>
+      <div className="space-y-8">
+        {/* Header with Company Badge */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#232120] to-[#070606] border border-[#3f3b3a] rounded-3xl p-8">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[#ff6f20]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#5b2e5e]/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+          <div className="relative text-center">
+            <div className="inline-block px-4 py-1 bg-[#ff6f20]/20 border border-[#ff6f20]/30 rounded-full text-[#ff6f20] text-sm font-medium mb-4">
+              GTM DIAGNOSTIC COMPLETE
+            </div>
+            <h2 className="font-bold text-3xl mb-2" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>{companyName || domain}</h2>
+            <p className="text-[#ff8f50] font-medium text-lg">{selectedProduct}</p>
+            <button onClick={downloadReport} className="mt-6 bg-white/10 border border-white/20 text-white py-3 px-6 rounded-xl text-sm font-medium hover:bg-white/15 transition-all inline-flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+              Download Report
+            </button>
           </div>
         </div>
 
-        {/* The Bottom Line */}
-        <div className="bg-gradient-to-r from-rose-500/20 to-purple-500/20 border border-rose-500/30 rounded-2xl p-6">
-          <h3 className="font-bold text-lg mb-3 text-rose-400">The Bottom Line</h3>
-          <div className="text-white/90 leading-relaxed">
-            {cleanResponse(reportData.narrative).split("\n\n").map((p, i) => (
-              <p key={i} className="mb-3 last:mb-0">{p}</p>
-            ))}
+        {/* Signal-to-Action Flow Visualization */}
+        <div className="bg-gradient-to-br from-[#232120] to-[#070606] border border-[#3f3b3a] rounded-3xl p-8">
+          <div className="text-center mb-8">
+            <h3 className="font-bold text-xl mb-2" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Your Signal-Driven GTM System</h3>
+            <p className="text-[#aaa7a6] text-sm">How your ICP, signals, and content connect to drive pipeline</p>
+          </div>
+
+          {/* Flow Diagram */}
+          <div className="relative">
+            {/* Connection Lines (SVG) */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
+              <defs>
+                <linearGradient id="flowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#5b2e5e" />
+                  <stop offset="50%" stopColor="#ff6f20" />
+                  <stop offset="100%" stopColor="#22c55e" />
+                </linearGradient>
+              </defs>
+            </svg>
+
+            <div className="grid grid-cols-4 gap-4 relative" style={{ zIndex: 1 }}>
+              {/* ICP Node */}
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-[#5b2e5e] to-[#5b2e5e]/60 flex items-center justify-center shadow-lg shadow-[#5b2e5e]/30">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                </div>
+                <div className="font-semibold text-sm text-[#9a5d9d]">ICP</div>
+                <div className="text-xs text-[#75716f] mt-1">{personas.length} Personas</div>
+              </div>
+
+              {/* Arrow */}
+              <div className="flex items-center justify-center">
+                <div className="h-0.5 w-full bg-gradient-to-r from-[#5b2e5e] to-[#ff6f20] relative">
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#ff6f20] rotate-45" />
+                </div>
+              </div>
+
+              {/* Signals Node */}
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-[#ff6f20] to-[#e56318] flex items-center justify-center shadow-lg shadow-[#ff6f20]/30">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                </div>
+                <div className="font-semibold text-sm text-[#ff8f50]">SIGNALS</div>
+                <div className="text-xs text-[#75716f] mt-1">{signals.length || selectedSignals.length} Active</div>
+              </div>
+
+              {/* Arrow */}
+              <div className="flex items-center justify-center">
+                <div className="h-0.5 w-full bg-gradient-to-r from-[#ff6f20] to-[#22c55e] relative">
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#22c55e] rotate-45" />
+                </div>
+              </div>
+            </div>
+
+            {/* Second Row */}
+            <div className="grid grid-cols-4 gap-4 mt-6 relative" style={{ zIndex: 1 }}>
+              {/* Content Node */}
+              <div className="text-center col-start-2">
+                <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-[#ffdd1f] to-[#f59e0b] flex items-center justify-center shadow-lg shadow-[#ffdd1f]/30">
+                  <svg className="w-8 h-8 text-[#070606]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
+                </div>
+                <div className="font-semibold text-sm text-[#ffdd1f]">CONTENT</div>
+                <div className="text-xs text-[#75716f] mt-1">Grade: {grade}</div>
+              </div>
+
+              {/* Arrow */}
+              <div className="flex items-center justify-center">
+                <div className="h-0.5 w-full bg-gradient-to-r from-[#ffdd1f] to-[#22c55e] relative">
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#22c55e] rotate-45" />
+                </div>
+              </div>
+
+              {/* Outreach Node */}
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-[#22c55e] to-[#16a34a] flex items-center justify-center shadow-lg shadow-[#22c55e]/30">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                </div>
+                <div className="font-semibold text-sm text-[#22c55e]">OUTREACH</div>
+                <div className="text-xs text-[#75716f] mt-1">Signal-Driven</div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Competitive Grid */}
-        {competitors.length > 0 && (
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-            <h3 className="font-bold text-lg mb-4">Competitive Snapshot</h3>
+        {/* The Bottom Line - Executive Summary */}
+        <div className="bg-gradient-to-br from-[#ff6f20]/10 via-[#232120] to-[#5b2e5e]/10 border border-[#ff6f20]/20 rounded-3xl p-8">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-[#ff6f20]/20 flex items-center justify-center flex-shrink-0">
+              <svg className="w-6 h-6 text-[#ff6f20]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+            </div>
+            <div>
+              <h3 className="font-bold text-xl mb-3" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>The Bottom Line</h3>
+              <div className="text-[#dededd] leading-relaxed space-y-3">
+                {cleanResponse(reportData.narrative).split("\n\n").map((p, i) => (
+                  <p key={i}>{p}</p>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Content Strategy - Scaffolded for Podcast, VOC, Signal-Based */}
+        <div className="bg-gradient-to-br from-[#232120] to-[#070606] border border-[#3f3b3a] rounded-3xl p-8">
+          <h3 className="font-bold text-xl mb-6" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Content Engine</h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            {/* Signal-Based Content */}
+            <div className="bg-gradient-to-br from-[#ff6f20]/10 to-transparent border border-[#ff6f20]/20 rounded-2xl p-5">
+              <div className="w-10 h-10 rounded-lg bg-[#ff6f20]/20 flex items-center justify-center mb-3">
+                <svg className="w-5 h-5 text-[#ff6f20]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+              </div>
+              <h4 className="font-semibold text-[#ff8f50] mb-2">Signal-Based Content</h4>
+              <p className="text-sm text-[#aaa7a6] mb-3">Content triggered by aggregate signals across accounts — addressing pain at the moment it surfaces.</p>
+              <div className="text-xs text-[#5a5654] italic">Coming soon: AI-generated content from signal patterns</div>
+            </div>
+
+            {/* VOC Content */}
+            <div className="bg-gradient-to-br from-[#5b2e5e]/10 to-transparent border border-[#5b2e5e]/20 rounded-2xl p-5">
+              <div className="w-10 h-10 rounded-lg bg-[#5b2e5e]/20 flex items-center justify-center mb-3">
+                <svg className="w-5 h-5 text-[#9a5d9d]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+              </div>
+              <h4 className="font-semibold text-[#9a5d9d] mb-2">Voice of Customer</h4>
+              <p className="text-sm text-[#aaa7a6] mb-3">LinkedIn-sourced pain points and discussions that reveal what your buyers actually care about.</p>
+              <div className="text-xs text-[#5a5654] italic">Coming soon: Pain-point research integration</div>
+            </div>
+
+            {/* Podcast */}
+            <div className="bg-gradient-to-br from-[#ffdd1f]/10 to-transparent border border-[#ffdd1f]/20 rounded-2xl p-5">
+              <div className="w-10 h-10 rounded-lg bg-[#ffdd1f]/20 flex items-center justify-center mb-3">
+                <svg className="w-5 h-5 text-[#ffdd1f]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+              </div>
+              <h4 className="font-semibold text-[#ffdd1f] mb-2">Podcast Strategy</h4>
+              <p className="text-sm text-[#aaa7a6] mb-3">VOC-driven podcast topics that become posts, all stemming from real buyer pain.</p>
+              <div className="text-xs text-[#5a5654] italic">Coming soon: Topic recommendations</div>
+            </div>
+          </div>
+
+          {/* Current Content Analysis */}
+          <div className="border-t border-[#3f3b3a] pt-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className={`text-3xl font-bold ${gradeColors[grade]}`}>{grade}</div>
+              <div>
+                <div className="font-medium text-white">Current Content Grade</div>
+                <div className="text-sm text-[#75716f]">Based on ICP alignment and presence</div>
+              </div>
+            </div>
+            <p className="text-[#aaa7a6] text-sm leading-relaxed">
+              {cleanResponse(reportData.content).split('\n').slice(0, 3).join(' ').substring(0, 200)}...
+            </p>
+          </div>
+        </div>
+
+        {/* Personas & Signals Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Personas */}
+          <div className="bg-gradient-to-br from-[#232120] to-[#070606] border border-[#3f3b3a] rounded-3xl p-6">
+            <h3 className="font-bold text-lg mb-4" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Target Personas</h3>
             <div className="space-y-3">
-              {competitors.map((c, i) => (
-                <div key={i} className="grid grid-cols-4 gap-3 text-sm">
-                  <div className="font-semibold text-white">{c.name}</div>
-                  <div className="text-green-400/80">✓ {c.strength}</div>
-                  <div className="text-red-400/80">✗ {c.weakness}</div>
-                  <div className="text-rose-400">→ {c.youWin}</div>
+              {personas.map((p, i) => (
+                <div key={i} className="bg-[#5b2e5e]/10 border border-[#5b2e5e]/20 rounded-xl p-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-8 h-8 rounded-full bg-[#5b2e5e]/30 flex items-center justify-center text-sm">
+                      {i + 1}
+                    </div>
+                    <div className="font-semibold text-[#9a5d9d]">{p.title}</div>
+                  </div>
+                  {p.goal && <p className="text-sm text-[#aaa7a6] ml-11">{p.goal}</p>}
+                  {p.jtbd && <p className="text-xs text-[#75716f] italic ml-11 mt-1">&quot;{p.jtbd}&quot;</p>}
                 </div>
               ))}
             </div>
           </div>
-        )}
 
-        {/* Personas */}
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-          <h3 className="font-bold text-lg mb-4">Your Buyers</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {parsePersonas(cleanResponse(reportData.icp).split("\n")).slice(0, 4).map((p, i) => (
-              <div key={i} className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-4">
-                <div className="font-semibold text-purple-300 mb-1">{p.title}</div>
-                <div className="text-white/70 text-sm">{p.goal}</div>
+          {/* Competitive Snapshot */}
+          {competitors.length > 0 && (
+            <div className="bg-gradient-to-br from-[#232120] to-[#070606] border border-[#3f3b3a] rounded-3xl p-6">
+              <h3 className="font-bold text-lg mb-4" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Competitive Landscape</h3>
+              <div className="space-y-3">
+                {competitors.map((c, i) => (
+                  <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-4">
+                    <div className="font-semibold text-white mb-2">{c.name}</div>
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      <div><span className="text-[#22c55e]">+</span> <span className="text-[#aaa7a6]">{c.strength || "—"}</span></div>
+                      <div><span className="text-[#ef4444]">−</span> <span className="text-[#aaa7a6]">{c.weakness || "—"}</span></div>
+                      <div><span className="text-[#ff6f20]">→</span> <span className="text-[#aaa7a6]">{c.youWin || "—"}</span></div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* CTA */}
-        <div className="bg-gradient-to-r from-rose-500 to-rose-600 rounded-2xl p-8 text-center">
-          <h3 className="font-bold text-xl mb-2">Ready to fix the gaps?</h3>
-          <p className="text-white/80 mb-4">Let's talk about turning this diagnostic into action.</p>
-          <a href="https://smokesignals.ai/contact" target="_blank" rel="noopener noreferrer" className="inline-block bg-white text-rose-600 font-semibold py-3 px-8 rounded-lg hover:bg-white/90 transition-all">
-            Book a Strategy Session
-          </a>
+        <div className="relative overflow-hidden bg-gradient-to-r from-[#ff6f20] to-[#e56318] rounded-3xl p-10 text-center">
+          <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+          <div className="relative">
+            <h3 className="font-bold text-2xl mb-3" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Ready to Build Your Signal-Driven GTM?</h3>
+            <p className="text-white/80 mb-6 max-w-lg mx-auto">Turn this diagnostic into a 90-day transformation. Strategy-first, tool-agnostic execution.</p>
+            <a href="https://smokesignals.ai/contact" target="_blank" rel="noopener noreferrer" className="inline-block bg-white text-[#e56318] font-bold py-4 px-10 rounded-xl hover:bg-white/90 transition-all shadow-lg shadow-black/20">
+              Book a Strategy Session
+            </a>
+          </div>
         </div>
       </div>
     );
@@ -1124,17 +1290,17 @@ ${safeClean(reportData?.content)}
   // Show loading state while hydrating from localStorage
   if (!isHydrated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 text-white flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-white/10 border-t-rose-500 rounded-full animate-spin" />
+      <div className="min-h-screen bg-gradient-to-br from-[#070606] via-[#232120] to-[#070606] p-6 text-white flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-white/10 border-t-[#ff6f20] rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 text-white" style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+    <div className="min-h-screen bg-gradient-to-br from-[#070606] via-[#232120] to-[#070606] p-6 text-[#f9f9f9]" style={{ fontFamily: "var(--font-body), 'Open Sans', sans-serif" }}>
       {/* Error Toast */}
       {errorToast && (
-        <div className="fixed top-4 right-4 z-50 bg-red-500/90 text-white px-5 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-in slide-in-from-top-2">
+        <div className="fixed top-4 right-4 z-50 bg-[#ff1f40]/90 text-white px-5 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-in slide-in-from-top-2">
           <span className="text-lg">⚠️</span>
           <span>{errorToast}</span>
           <button onClick={() => setErrorToast(null)} className="ml-2 hover:text-white/80">✕</button>
@@ -1143,9 +1309,9 @@ ${safeClean(reportData?.content)}
 
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-8">
-          <img src="https://smokesignals.ai/hs-fs/hubfs/Smoke_Signals/img/smokesignal-logo.png" alt="Smoke Signals AI" className="h-10 mx-auto mb-4" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-          <h1 className="text-3xl font-bold">GTM Operating System Diagnostic</h1>
-          <p className="text-white/60 mt-2">AI-powered analysis of your go-to-market engine</p>
+          <img src="https://smokesignals.ai/hs-fs/hubfs/Smoke_Signals/img/smokesignal-logo.png" alt="Smoke Signals AI" className="h-12 mx-auto mb-4" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          <h1 className="text-3xl font-bold" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>GTM Operating System Diagnostic</h1>
+          <p className="text-[#aaa7a6] mt-2">Signal-driven analysis of your go-to-market engine</p>
           {currentStep > 0 && (
             <button
               onClick={clearSession}
