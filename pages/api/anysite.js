@@ -11,8 +11,8 @@
  * - generateQuery: Generate an Anysite query for manual use
  */
 
-const MCP_SERVER_URL = process.env.MCP_SERVER_URL || process.env.ANYSITE_MCP_URL;
-const MCP_KEY = process.env.ANYSITE_MCP_KEY || process.env['Anysite MCP Key'];
+const MCP_SERVER_URL = process.env.ANYSITE_MCP_URL;
+const MCP_KEY = process.env.ANYSITE_MCP_KEY;
 
 // MCP JSON-RPC request helper
 async function mcpCall(method, params = {}) {
