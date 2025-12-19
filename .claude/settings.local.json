@@ -7,7 +7,9 @@
       "Bash(git push:*)",
       "Bash(git filter-branch:*)",
       "Bash(git stash:*)",
-      "Bash(FILTER_BRANCH_SQUELCH_WARNING=1 git filter-branch:*)"
+      "Bash(FILTER_BRANCH_SQUELCH_WARNING=1 git filter-branch:*)",
+      "Bash(git log:*)",
+      "Bash(ls -la \"c:\\\\programming\\\\_SmokeSignals\\\\gtm-os-analysis-main\\\\assets\"\" | grep -i \"logo|svg|png|jpg \")"
     ]
   }
 }
