@@ -13,6 +13,16 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  // Custom rules for single-file architecture
+  {
+    rules: {
+      // Allow inline styles (required for single-file architecture per AGENT.md)
+      "react/forbid-component-props": "off",
+      "react/forbid-dom-props": "off",
+      // Allow button without explicit type in JSX
+      "react/button-has-type": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

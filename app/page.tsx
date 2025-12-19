@@ -1,7 +1,207 @@
 "use client";
 import { useState, useEffect, useCallback } from 'react';
+import dynamic from 'next/dynamic';
+import { pdf, Document, Page, Text, View, Image, StyleSheet, Link } from '@react-pdf/renderer';
 
 const STORAGE_KEY = 'gtm-diagnostic-session';
+
+// PDF Styles
+const pdfStyles = StyleSheet.create({
+  page: {
+    backgroundColor: '#070606',
+    padding: 40,
+    fontFamily: 'Helvetica',
+    color: '#f9f9f9',
+  },
+  header: {
+    marginBottom: 30,
+    borderBottom: '2 solid #ff6f20',
+    paddingBottom: 20,
+  },
+  logo: {
+    width: 150,
+    marginBottom: 10,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#f9f9f9',
+    marginBottom: 5,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#ff6f20',
+    marginBottom: 5,
+  },
+  date: {
+    fontSize: 10,
+    color: '#75716f',
+  },
+  section: {
+    marginBottom: 25,
+    padding: 20,
+    backgroundColor: '#232120',
+    borderRadius: 8,
+    borderLeft: '3 solid #ff6f20',
+  },
+  sectionPurple: {
+    marginBottom: 25,
+    padding: 20,
+    backgroundColor: '#232120',
+    borderRadius: 8,
+    borderLeft: '3 solid #5b2e5e',
+  },
+  sectionYellow: {
+    marginBottom: 25,
+    padding: 20,
+    backgroundColor: '#232120',
+    borderRadius: 8,
+    borderLeft: '3 solid #ffdd1f',
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#ff6f20',
+    marginBottom: 10,
+  },
+  sectionTitlePurple: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#9a5d9d',
+    marginBottom: 10,
+  },
+  sectionTitleYellow: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#ffdd1f',
+    marginBottom: 10,
+  },
+  text: {
+    fontSize: 11,
+    color: '#dededd',
+    lineHeight: 1.6,
+    marginBottom: 8,
+  },
+  label: {
+    fontSize: 9,
+    color: '#75716f',
+    marginBottom: 2,
+  },
+  value: {
+    fontSize: 11,
+    color: '#aaa7a6',
+    marginBottom: 8,
+  },
+  signalCard: {
+    backgroundColor: '#070606',
+    padding: 12,
+    marginBottom: 10,
+    borderRadius: 6,
+    borderLeft: '2 solid #ff6f20',
+  },
+  signalName: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#f9f9f9',
+    marginBottom: 4,
+  },
+  signalImpact: {
+    fontSize: 9,
+    color: '#22c55e',
+    marginBottom: 6,
+  },
+  guestCard: {
+    backgroundColor: '#070606',
+    padding: 12,
+    marginBottom: 10,
+    borderRadius: 6,
+    borderLeft: '2 solid #ffdd1f',
+  },
+  guestName: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#f9f9f9',
+    marginBottom: 2,
+  },
+  guestCompany: {
+    fontSize: 10,
+    color: '#75716f',
+    marginBottom: 6,
+  },
+  programGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  programItem: {
+    width: '48%',
+    backgroundColor: '#070606',
+    padding: 12,
+    borderRadius: 6,
+    marginBottom: 10,
+  },
+  programTitle: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#f9f9f9',
+    marginBottom: 4,
+  },
+  programDesc: {
+    fontSize: 9,
+    color: '#75716f',
+  },
+  cta: {
+    marginTop: 30,
+    padding: 25,
+    backgroundColor: '#ff6f20',
+    borderRadius: 8,
+    textAlign: 'center',
+  },
+  ctaTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#f9f9f9',
+    marginBottom: 8,
+  },
+  ctaText: {
+    fontSize: 11,
+    color: '#f9f9f9',
+    marginBottom: 12,
+  },
+  ctaLink: {
+    fontSize: 12,
+    color: '#f9f9f9',
+    textDecoration: 'underline',
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 30,
+    left: 40,
+    right: 40,
+    textAlign: 'center',
+    fontSize: 9,
+    color: '#5a5654',
+  },
+});
+
+// Loading stage messages for engagement during wait
+const loadingStages = [
+  { icon: '🔍', text: 'Analyzing your website...', subtext: 'Extracting core value proposition' },
+  { icon: '📊', text: 'Pulling LinkedIn insights...', subtext: 'Company and CEO thought leadership' },
+  { icon: '🎯', text: 'Identifying ideal buyers...', subtext: 'Mapping personas and pain points' },
+  { icon: '⚡', text: 'Discovering alpha signals...', subtext: 'Finding unique buying indicators' },
+  { icon: '📝', text: 'Crafting your GTM OS...', subtext: 'Building your signal-driven system' },
+];
+
+// Rotating insights shown during loading
+const gtmInsights = [
+  "Signal-based outreach sees 3x higher reply rates than generic sequences",
+  "VOC programs generate 40% of the best-performing content ideas",
+  "Companies using pillar content see 2x organic traffic growth",
+  "Signal-driven sequences have 2x the meeting conversion rate",
+  "The best GTM teams activate signals within 24 hours of detection",
+  "Content built on aggregated signal data outperforms opinion pieces by 3x",
+];
 
 const signalVendors = [
   { id: "clay", name: "Clay", logo: "https://logo.clearbit.com/clay.com" },
@@ -20,8 +220,21 @@ const signalTypes = [
   { id: "website_visitors", label: "Website Visitors", desc: "De-anonymized" }
 ];
 
-const steps = ["intro", "select-product", "basic", "research-company", "research-icp", "research-competitive", "research-content", "signals", "alignment", "generating", "results"];
+// New flow: intro → select-product → icp-selection → research phases → signals-alignment → generating → results
+const steps = ["intro", "select-product", "icp-selection", "research-company", "research-competitive", "research-content", "signals-alignment", "generating", "results"];
+
+// Program elements structure for value prop display
+const programElements = {
+  voc: { title: "Voice of Customer Program", deliverable: "25 ICP conversations", icon: "💬" },
+  socialListening: { title: "Social Listening Program", deliverable: "50 new ICP connections/month", icon: "👂" },
+  podcasts: { title: "ICP Podcast Program", deliverable: "4 podcast episodes", icon: "🎙️" },
+  pillarContent: { title: "Pillar Content", deliverable: "Signal-based industry report", icon: "📊" },
+  signalSequence: { title: "Signal-Based Sequences", deliverable: "Trigger-driven outreach", icon: "⚡" },
+  hubspotEnablement: { title: "HubSpot Enablement", deliverable: "Automated sales workflows", icon: "🔧" },
+};
+
 export default function Home() {
+  // Core wizard state
   const [currentStep, setCurrentStep] = useState(0);
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [domain, setDomain] = useState("");
@@ -33,19 +246,49 @@ export default function Home() {
   const [selectedVendors, setSelectedVendors] = useState<string[]>([]);
   const [selectedSignals, setSelectedSignals] = useState<string[]>([]);
   const [alignment, setAlignment] = useState<{gtm?: string}>({});
+
+  // Research phases
   const [research, setResearch] = useState({
     company: { initial: "", feedback: "", refined: "", loading: false },
     icp: { initial: "", feedback: "", refined: "", loading: false },
     competitive: { initial: "", feedback: "", refined: "", loading: false },
     content: { initial: "", feedback: "", refined: "", loading: false }
   });
-  const [reportData, setReportData] = useState<{narrative: string; icp: string; content: string; competitive: string} | null>(null);
-  const [contactId, setContactId] = useState<string | null>(null);
+
+  // Products and ICP selection
   const [products, setProducts] = useState<string[]>([]);
   const [selectedProduct, setSelectedProduct] = useState("");
   const [productsLoading, setProductsLoading] = useState(false);
+  const [discoveredICPs, setDiscoveredICPs] = useState<{id: string; title: string; description: string}[]>([]);
+  const [selectedICPs, setSelectedICPs] = useState<string[]>([]);
+
+  // Background data from parallel fetching
+  const [backgroundData, setBackgroundData] = useState<{
+    websiteContent: string | null;
+    companyPosts: string | null;
+    ceoPosts: string | null;
+    anysiteQuery: string | null;
+  }>({
+    websiteContent: null,
+    companyPosts: null,
+    ceoPosts: null,
+    anysiteQuery: null,
+  });
+
+  // New outputs: alpha signals, pillar content, podcast guests
+  const [alphaSignals, setAlphaSignals] = useState<{name: string; source: string; detection: string; impact: string; example: string}[]>([]);
+  const [pillarContent, setPillarContent] = useState<{title: string; concept: string; dataSources: string; cadence: string} | null>(null);
+  const [podcastGuests, setPodcastGuests] = useState<{name: string; company: string; icpMatch: string; topic: string; whyInvite: string}[]>([]);
+
+  // Report and HubSpot
+  const [reportData, setReportData] = useState<{narrative: string; icp: string; content: string; competitive: string} | null>(null);
+  const [contactId, setContactId] = useState<string | null>(null);
+
+  // UI state
   const [isHydrated, setIsHydrated] = useState(false);
   const [errorToast, setErrorToast] = useState<string | null>(null);
+  const [loadingStage, setLoadingStage] = useState(0);
+  const [currentInsight, setCurrentInsight] = useState(0);
 
   // Load session from localStorage on mount
   useEffect(() => {
@@ -69,6 +312,12 @@ export default function Home() {
         if (data.contactId) setContactId(data.contactId);
         if (data.products) setProducts(data.products);
         if (data.selectedProduct) setSelectedProduct(data.selectedProduct);
+        if (data.discoveredICPs) setDiscoveredICPs(data.discoveredICPs);
+        if (data.selectedICPs) setSelectedICPs(data.selectedICPs);
+        if (data.backgroundData) setBackgroundData(data.backgroundData);
+        if (data.alphaSignals) setAlphaSignals(data.alphaSignals);
+        if (data.pillarContent) setPillarContent(data.pillarContent);
+        if (data.podcastGuests) setPodcastGuests(data.podcastGuests);
       }
     } catch (e) {
       console.error('Failed to load session:', e);
@@ -97,12 +346,34 @@ export default function Home() {
         contactId,
         products,
         selectedProduct,
+        discoveredICPs,
+        selectedICPs,
+        backgroundData,
+        alphaSignals,
+        pillarContent,
+        podcastGuests,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (e) {
       console.error('Failed to save session:', e);
     }
-  }, [isHydrated, currentStep, websiteUrl, domain, email, companyName, role, companySize, crm, selectedVendors, selectedSignals, alignment, research, reportData, contactId, products, selectedProduct]);
+  }, [isHydrated, currentStep, websiteUrl, domain, email, companyName, role, companySize, crm, selectedVendors, selectedSignals, alignment, research, reportData, contactId, products, selectedProduct, discoveredICPs, selectedICPs, backgroundData, alphaSignals, pillarContent, podcastGuests]);
+
+  // Rotate loading stages and insights during wait
+  useEffect(() => {
+    if (productsLoading || steps[currentStep] === 'generating') {
+      const stageInterval = setInterval(() => {
+        setLoadingStage(s => (s + 1) % loadingStages.length);
+      }, 4000);
+      const insightInterval = setInterval(() => {
+        setCurrentInsight(i => (i + 1) % gtmInsights.length);
+      }, 6000);
+      return () => {
+        clearInterval(stageInterval);
+        clearInterval(insightInterval);
+      };
+    }
+  }, [productsLoading, currentStep]);
 
   const clearSession = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
@@ -127,7 +398,55 @@ export default function Home() {
     setContactId(null);
     setProducts([]);
     setSelectedProduct("");
+    setDiscoveredICPs([]);
+    setSelectedICPs([]);
+    setBackgroundData({ websiteContent: null, companyPosts: null, ceoPosts: null, anysiteQuery: null });
+    setAlphaSignals([]);
+    setPillarContent(null);
+    setPodcastGuests([]);
+    setLoadingStage(0);
+    setCurrentInsight(0);
   }, []);
+
+  // API helper: Firecrawl for website content
+  const fetchWebsiteContent = async (url: string): Promise<string | null> => {
+    try {
+      const response = await fetch("/api/firecrawl", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          url: url.startsWith("http") ? url : `https://${url}`,
+          action: "scrape",
+          options: { formats: ["markdown"], onlyMainContent: true }
+        })
+      });
+      if (!response.ok) return null;
+      const data = await response.json();
+      return data.data?.markdown || data.markdown || null;
+    } catch (e) {
+      console.error("Firecrawl error:", e);
+      return null;
+    }
+  };
+
+  // API helper: Anysite for LinkedIn data
+  const fetchLinkedInData = async (action: string, params: Record<string, unknown>): Promise<{data: unknown; query: string | null}> => {
+    try {
+      const response = await fetch("/api/anysite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, params })
+      });
+      const result = await response.json();
+      return {
+        data: result.data || null,
+        query: result.fallback?.query || result.data?.query || null
+      };
+    } catch (e) {
+      console.error("Anysite error:", e);
+      return { data: null, query: null };
+    }
+  };
 
   const showError = useCallback((message: string) => {
     setErrorToast(message);
@@ -323,6 +642,136 @@ HOW TO IMPROVE
 RULES:
 - NO PREAMBLE
 - Write TO reader using "you/your"`;
+  };
+
+  // New output generation prompts
+  const getAlphaSignalsPrompt = () => {
+    const icpContext = selectedICPs.length > 0 ? selectedICPs.join(", ") : "key decision makers";
+    const companyContext = research.company.refined || research.company.initial || "";
+    const competitiveContext = research.competitive.refined || research.competitive.initial || "";
+    return `You're a GTM strategist identifying alpha signals for ${companyName || domain}'s "${selectedProduct}".
+
+Context about the company: ${cleanResponse(companyContext).substring(0, 300)}
+Target ICPs: ${icpContext}
+Competitive landscape: ${cleanResponse(competitiveContext).substring(0, 200)}
+
+Alpha signals are unique buying indicators that predict purchase intent BEFORE competitors notice. They're the "tells" that someone is ready to buy.
+
+Generate exactly 3 alpha signals, ranked by pipeline impact (highest first).
+
+Format EXACTLY like this (each on its own line):
+SIGNAL 1: [Signal Name]
+SOURCE: [Where to detect it - LinkedIn, job boards, press, etc.]
+DETECTION: [Specific trigger or pattern to watch for]
+IMPACT: High
+EXAMPLE: [Specific example for ${domain}]
+
+SIGNAL 2: [Signal Name]
+SOURCE: [Where to detect it]
+DETECTION: [Specific trigger or pattern]
+IMPACT: Medium-High
+EXAMPLE: [Specific example]
+
+SIGNAL 3: [Signal Name]
+SOURCE: [Where to detect it]
+DETECTION: [Specific trigger or pattern]
+IMPACT: Medium
+EXAMPLE: [Specific example]
+
+RULES:
+- NO PREAMBLE - start with SIGNAL 1
+- Be SPECIFIC to their business, not generic
+- Each signal must be actionable and detectable
+- Rank by realistic pipeline impact`;
+  };
+
+  const getPillarContentPrompt = () => {
+    const icpContext = selectedICPs.length > 0 ? selectedICPs.join(", ") : "key decision makers";
+    const companyContext = research.company.refined || research.company.initial || "";
+    const linkedInData = backgroundData.companyPosts || backgroundData.ceoPosts || "";
+    return `You're a content strategist creating a pillar content concept for ${companyName || domain}'s "${selectedProduct}".
+
+Company context: ${cleanResponse(companyContext).substring(0, 300)}
+Target ICPs: ${icpContext}
+${linkedInData ? `Recent LinkedIn activity: ${linkedInData.substring(0, 200)}` : ""}
+
+Create ONE compelling pillar content concept that:
+1. Is data-driven (uses aggregated signals/insights)
+2. Addresses real pain points your ICPs have
+3. Positions ${domain} as a thought leader
+4. Can be repurposed into multiple formats
+
+Format EXACTLY like this:
+
+TITLE: [Compelling, specific title - not generic]
+
+CONCEPT: [2-3 sentences describing the content piece and why it matters to ICPs]
+
+DATA SOURCES: [What data/signals would power this content]
+
+CADENCE: [How often to update/publish - quarterly report, monthly index, etc.]
+
+FORMAT OPTIONS:
+- [Format 1 - e.g., Interactive report]
+- [Format 2 - e.g., LinkedIn carousel series]
+- [Format 3 - e.g., Podcast episode topics]
+
+RULES:
+- NO PREAMBLE - start with TITLE
+- Be specific to their industry and ICPs
+- Make it genuinely useful, not promotional`;
+  };
+
+  const getPodcastGuestsPrompt = () => {
+    const icpContext = selectedICPs.length > 0 ? selectedICPs.join(", ") : "key decision makers";
+    const companyContext = research.company.refined || research.company.initial || "";
+    return `You're a podcast producer identifying ideal guests for ${companyName || domain}'s ICP-focused podcast about "${selectedProduct}".
+
+Company context: ${cleanResponse(companyContext).substring(0, 300)}
+Target ICPs: ${icpContext}
+
+The goal is to invite ICP-matching guests who:
+1. Are themselves potential buyers or influencers
+2. Bring credibility to topics your ICPs care about
+3. Will share the episode with their network (expanding your reach to more ICPs)
+
+Generate exactly 4 podcast guest suggestions.
+
+Format EXACTLY like this (each on its own line):
+
+GUEST 1:
+NAME: [Realistic name and title - make it specific]
+COMPANY: [Type of company they'd work at]
+ICP MATCH: [Which ICP persona they represent]
+TOPIC: [What you'd discuss with them]
+VALUE: [Why inviting them is strategic for ${domain}]
+
+GUEST 2:
+NAME: [Name and title]
+COMPANY: [Company type]
+ICP MATCH: [ICP persona]
+TOPIC: [Discussion topic]
+VALUE: [Strategic value]
+
+GUEST 3:
+NAME: [Name and title]
+COMPANY: [Company type]
+ICP MATCH: [ICP persona]
+TOPIC: [Discussion topic]
+VALUE: [Strategic value]
+
+GUEST 4:
+NAME: [Name and title]
+COMPANY: [Company type]
+ICP MATCH: [ICP persona]
+TOPIC: [Discussion topic]
+VALUE: [Strategic value]
+
+RULES:
+- NO PREAMBLE - start with GUEST 1
+- Make guests realistic personas (not real people unless famous in the space)
+- Each guest should match a different ICP or bring different value
+- Topics should be genuinely interesting, not promotional`;
   };
 
   const runResearchPhase = async (phase: string) => {
@@ -530,11 +979,13 @@ RULES:
     const d = websiteUrl.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
     setDomain(d);
     setProductsLoading(true);
+    setLoadingStage(0);
     nextStep();
-    
-    // Fetch products/offerings
-    try {
-      const result = await callClaude(`Search the web for "${d}" and identify their products, solutions, or service offerings.
+
+    // Fire ALL data fetching in parallel for speed
+    const [productsResult, websiteResult, linkedInResult] = await Promise.allSettled([
+      // 1. Fetch products/offerings via Claude
+      callClaude(`Search the web for "${d}" and identify their products, solutions, or service offerings.
 
 Return ONLY a simple numbered list of their distinct products/offerings. For example:
 1. Product Name A
@@ -547,12 +998,21 @@ If it's a service company with no distinct products, list their main service cat
 RULES:
 - Maximum 8 items
 - Just the product/service names, no descriptions
-- No preamble, just the numbered list`);
-      
-      // Parse the product list with multiple format support
+- No preamble, just the numbered list`),
+
+      // 2. Fetch website content via Firecrawl
+      fetchWebsiteContent(d),
+
+      // 3. Generate Anysite query for LinkedIn (always works, even without MCP)
+      fetchLinkedInData("generateQuery", { domain: d })
+    ]);
+
+    // Process products result
+    if (productsResult.status === 'fulfilled') {
+      const result = productsResult.value;
       let parsed: string[] = [];
 
-      // Try numbered list format (1. Product, 2. Product)
+      // Try numbered list format
       const numberedLines = result.match(/^\d+[\.\)]\s*.+$/gm);
       if (numberedLines && numberedLines.length > 0) {
         parsed = numberedLines
@@ -570,7 +1030,7 @@ RULES:
         }
       }
 
-      // Fallback: Split on newlines and filter
+      // Fallback: Split on newlines
       if (parsed.length === 0) {
         parsed = result.split('\n')
           .map((line: string) => line.replace(/^\d+[\.\)]\s*/, '').replace(/^[•\-\*]\s*/, '').trim())
@@ -578,9 +1038,17 @@ RULES:
       }
 
       setProducts(parsed.length > 0 ? parsed.slice(0, 8) : [d]);
-    } catch (e) {
+    } else {
       setProducts([d]);
     }
+
+    // Store background data for later use
+    setBackgroundData(prev => ({
+      ...prev,
+      websiteContent: websiteResult.status === 'fulfilled' ? websiteResult.value : null,
+      anysiteQuery: linkedInResult.status === 'fulfilled' ? linkedInResult.value.query : null,
+    }));
+
     setProductsLoading(false);
   };
 
@@ -615,26 +1083,87 @@ RULES:
     nextStep();
   };
 
+  // Auto-discover ICPs when product is selected
+  const discoverICPs = useCallback(async () => {
+    if (!selectedProduct || !domain) return;
+
+    const result = await callClaude(`Search the web for "${domain}" "${selectedProduct}" to understand who buys this product.
+
+List 4-6 distinct Ideal Customer Profiles (buyer segments). For each:
+1. [Title/Role] - [Brief description of who they are and why they buy]
+
+Example format:
+1. VP of Engineering - Technical leader evaluating tools for their team
+2. CTO - Strategic buyer focused on enterprise-wide decisions
+3. DevOps Manager - Hands-on implementer looking for efficiency
+
+RULES:
+- Maximum 6 ICPs
+- Each on its own line
+- Title first, then dash, then brief description
+- No preamble, just the list`);
+
+    // Parse ICPs from response
+    const lines = result.split('\n').filter((l: string) => l.trim());
+    const parsed: {id: string; title: string; description: string}[] = [];
+
+    lines.forEach((line: string, i: number) => {
+      const match = line.match(/^\d*\.?\s*([^-–]+)\s*[-–]\s*(.+)$/);
+      if (match) {
+        parsed.push({
+          id: `icp-${i}`,
+          title: match[1].trim(),
+          description: match[2].trim()
+        });
+      }
+    });
+
+    if (parsed.length > 0) {
+      setDiscoveredICPs(parsed.slice(0, 6));
+    } else {
+      // Fallback: generic ICPs
+      setDiscoveredICPs([
+        { id: 'icp-1', title: 'Decision Maker', description: 'Executive with budget authority' },
+        { id: 'icp-2', title: 'Technical Evaluator', description: 'Hands-on user who tests solutions' },
+        { id: 'icp-3', title: 'Champion', description: 'Internal advocate who drives adoption' }
+      ]);
+    }
+  }, [selectedProduct, domain]);
+
   useEffect(() => {
     const step = steps[currentStep];
-    const phases: {[key: string]: string} = { "research-company": "company", "research-icp": "icp", "research-competitive": "competitive", "research-content": "content" };
+    const phases: {[key: string]: string} = { "research-company": "company", "research-competitive": "competitive", "research-content": "content" };
     const currentPhase = phases[step];
+
     if (currentPhase) {
       const phaseData = research[currentPhase as keyof typeof research];
       if (!phaseData.initial && !phaseData.loading) runResearchPhase(currentPhase);
     }
-    if (step === "basic" && domain) {
+
+    // Discover ICPs when entering ICP selection step
+    if (step === "icp-selection" && discoveredICPs.length === 0 && selectedProduct) {
+      discoverICPs();
+    }
+
+    // Run ICP research after ICPs are selected (when moving to company research)
+    if (step === "research-company" && domain) {
       const companyData = research.company;
       if (!companyData.initial && !companyData.loading) runResearchPhase("company");
+      // Also trigger ICP research in background
+      const icpData = research.icp;
+      if (!icpData.initial && !icpData.loading && selectedICPs.length > 0) runResearchPhase("icp");
     }
+
     if (step === "generating" && !reportData) generateReport();
-  }, [currentStep, domain]);
+  }, [currentStep, domain, selectedProduct, discoveredICPs.length, selectedICPs.length, discoverICPs]);
 
   const generateReport = async () => {
     const getR = (k: string) => cleanResponse(research[k as keyof typeof research].refined || research[k as keyof typeof research].initial || "");
     const getCompetitive = () => research.competitive.refined || research.competitive.initial || "";
-    
-    const narrative = await callClaude(`You're a straight-talking GTM advisor. Write an executive summary for ${companyName || domain}'s "${selectedProduct}".
+
+    // Generate all outputs in parallel for speed
+    const [narrativeResult, alphaResult, pillarResult, podcastResult] = await Promise.allSettled([
+      callClaude(`You're a straight-talking GTM advisor. Write an executive summary for ${companyName || domain}'s "${selectedProduct}".
 
 Context: ${getR("company").substring(0, 300)}
 ICP: ${getR("icp").substring(0, 200)}
@@ -653,23 +1182,88 @@ Write 3 SHORT paragraphs:
 2. The gap (what's broken or missing)
 3. The unlock (one clear priority)
 
-NO PREAMBLE. Start with paragraph 1.`);
+NO PREAMBLE. Start with paragraph 1.`),
+      callClaude(getAlphaSignalsPrompt()),
+      callClaude(getPillarContentPrompt()),
+      callClaude(getPodcastGuestsPrompt())
+    ]);
 
-    const finalReportData = { 
-      narrative, 
-      icp: research.icp.refined || research.icp.initial || "", 
-      content: getR("content"), 
-      competitive: getCompetitive() 
+    const narrative = narrativeResult.status === 'fulfilled' ? narrativeResult.value : '';
+    const alphaRaw = alphaResult.status === 'fulfilled' ? alphaResult.value : '';
+    const pillarRaw = pillarResult.status === 'fulfilled' ? pillarResult.value : '';
+    const podcastRaw = podcastResult.status === 'fulfilled' ? podcastResult.value : '';
+
+    // Parse alpha signals
+    const parsedSignals: {name: string; source: string; detection: string; impact: string; example: string}[] = [];
+    const signalBlocks = alphaRaw.split(/SIGNAL \d+:/i).filter((s: string) => s.trim());
+    signalBlocks.forEach((block: string) => {
+      const nameMatch = block.match(/^[^\n]+/);
+      const sourceMatch = block.match(/SOURCE:\s*([^\n]+)/i);
+      const detectionMatch = block.match(/DETECTION:\s*([^\n]+)/i);
+      const impactMatch = block.match(/IMPACT:\s*([^\n]+)/i);
+      const exampleMatch = block.match(/EXAMPLE:\s*([^\n]+)/i);
+      if (nameMatch) {
+        parsedSignals.push({
+          name: nameMatch[0].trim(),
+          source: sourceMatch ? sourceMatch[1].trim() : '',
+          detection: detectionMatch ? detectionMatch[1].trim() : '',
+          impact: impactMatch ? impactMatch[1].trim() : 'Medium',
+          example: exampleMatch ? exampleMatch[1].trim() : ''
+        });
+      }
+    });
+    setAlphaSignals(parsedSignals);
+
+    // Parse pillar content
+    const titleMatch = pillarRaw.match(/TITLE:\s*([^\n]+)/i);
+    const conceptMatch = pillarRaw.match(/CONCEPT:\s*([^\n]+(?:\n(?!DATA|CADENCE|FORMAT)[^\n]+)*)/i);
+    const dataMatch = pillarRaw.match(/DATA SOURCES:\s*([^\n]+(?:\n(?!CADENCE|FORMAT)[^\n]+)*)/i);
+    const cadenceMatch = pillarRaw.match(/CADENCE:\s*([^\n]+)/i);
+    if (titleMatch) {
+      setPillarContent({
+        title: titleMatch[1].trim(),
+        concept: conceptMatch ? conceptMatch[1].trim() : '',
+        dataSources: dataMatch ? dataMatch[1].trim() : '',
+        cadence: cadenceMatch ? cadenceMatch[1].trim() : ''
+      });
+    }
+
+    // Parse podcast guests
+    const parsedGuests: {name: string; company: string; icpMatch: string; topic: string; whyInvite: string}[] = [];
+    const guestBlocks = podcastRaw.split(/GUEST \d+:/i).filter((s: string) => s.trim());
+    guestBlocks.forEach((block: string) => {
+      const nameMatch = block.match(/NAME:\s*([^\n]+)/i);
+      const companyMatch = block.match(/COMPANY:\s*([^\n]+)/i);
+      const icpMatch = block.match(/ICP MATCH:\s*([^\n]+)/i);
+      const topicMatch = block.match(/TOPIC:\s*([^\n]+)/i);
+      const valueMatch = block.match(/VALUE:\s*([^\n]+)/i);
+      if (nameMatch) {
+        parsedGuests.push({
+          name: nameMatch[1].trim(),
+          company: companyMatch ? companyMatch[1].trim() : '',
+          icpMatch: icpMatch ? icpMatch[1].trim() : '',
+          topic: topicMatch ? topicMatch[1].trim() : '',
+          whyInvite: valueMatch ? valueMatch[1].trim() : ''
+        });
+      }
+    });
+    setPodcastGuests(parsedGuests);
+
+    const finalReportData = {
+      narrative,
+      icp: research.icp.refined || research.icp.initial || "",
+      content: getR("content"),
+      competitive: getCompetitive()
     };
-    
+
     setReportData(finalReportData);
-    
+
     // Extract content grade (letter only)
     const contentText = getR("content");
     const gradeMatch = contentText.match(/CONTENT GRADE:\s*([A-F])/i);
     const contentGrade = gradeMatch ? gradeMatch[1].toUpperCase() : "";
-    
-   // Send analysis data to HubSpot Company
+
+    // Send analysis data to HubSpot Company
     try {
       await fetch("/api/hubspot", {
         method: "POST",
@@ -687,7 +1281,12 @@ NO PREAMBLE. Start with paragraph 1.`);
             gtm_content_grade: contentGrade,
             gtm_content_analysis: contentText.substring(0, 65000),
             gtm_narrative: cleanResponse(narrative).substring(0, 65000),
-            gtm_diagnostic_date: new Date().toISOString().split('T')[0]
+            gtm_diagnostic_date: new Date().toISOString().split('T')[0],
+            gtm_alpha_signals: JSON.stringify(parsedSignals).substring(0, 65000),
+            gtm_pillar_content: JSON.stringify(pillarContent).substring(0, 65000),
+            gtm_podcast_guests: JSON.stringify(parsedGuests).substring(0, 65000),
+            gtm_selected_icps: selectedICPs.join('; '),
+            gtm_anysite_query: backgroundData.anysiteQuery || ''
           },
           associateWith: contactId ? { type: "contacts", id: contactId } : undefined
         })
@@ -695,7 +1294,7 @@ NO PREAMBLE. Start with paragraph 1.`);
     } catch (e) {
       console.error("HubSpot company sync error:", e);
     }
-    
+
     setCurrentStep(steps.indexOf("results"));
   };
 
@@ -708,25 +1307,97 @@ NO PREAMBLE. Start with paragraph 1.`);
   );
 
   const renderIntro = () => (
-    <div className="bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm p-11 text-center">
-      <div className="text-5xl mb-6">🔬</div>
-      <h2 className="font-bold text-2xl mb-3">Get Your Custom GTM Analysis</h2>
-      <p className="text-white/60 mb-8 max-w-md mx-auto">Enter your website for AI-powered analysis of your company, customers, and competitors.</p>
-      <div className="max-w-sm mx-auto">
-        <input type="url" placeholder="https://yourcompany.com" value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} className="w-full bg-white/5 border border-white/15 rounded-lg px-4 py-4 text-white text-center mb-4 outline-none focus:border-[#ff6f20]" />
-        <button onClick={startDiagnostic} className="w-full bg-gradient-to-r from-[#ff6f20] to-[#e56318] text-white py-4 px-8 rounded-lg font-semibold hover:shadow-lg hover:shadow-[#ff6f20]/30 transition-all">Start Analysis →</button>
+    <div className="bg-gradient-to-br from-[#232120] to-[#070606] border border-[#3f3b3a] rounded-3xl p-11 text-center relative overflow-hidden">
+      {/* Background accent */}
+      <div className="absolute top-0 right-0 w-64 h-64 bg-[#ff6f20]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+      <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#5b2e5e]/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+
+      <div className="relative">
+        <div className="inline-block px-4 py-1.5 bg-[#ff6f20]/15 border border-[#ff6f20]/30 rounded-full text-[#ff6f20] text-sm font-semibold mb-6">
+          SIGNAL-DRIVEN GTM OS
+        </div>
+
+        <h2 className="font-bold text-3xl mb-4" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>
+          Build Your Signal-Driven GTM Operating System
+        </h2>
+
+        <p className="text-[#aaa7a6] mb-4 max-w-lg mx-auto leading-relaxed">
+          We&apos;ll analyze your business and get your feedback on key assumptions to create a complete signal-driven go-to-market system.
+        </p>
+
+        {/* Core value loop */}
+        <div className="bg-[#070606]/50 border border-[#3f3b3a] rounded-xl p-4 mb-8 max-w-md mx-auto">
+          <div className="flex items-center justify-center gap-2 text-sm">
+            <span className="text-[#ff6f20] font-medium">Signals</span>
+            <span className="text-[#5a5654]">→</span>
+            <span className="text-[#ffdd1f] font-medium">Content</span>
+            <span className="text-[#5a5654]">→</span>
+            <span className="text-[#9a5d9d] font-medium">Trust</span>
+            <span className="text-[#5a5654]">→</span>
+            <span className="text-[#22c55e] font-medium">Demand</span>
+          </div>
+        </div>
+
+        <div className="max-w-sm mx-auto">
+          <input
+            type="url"
+            placeholder="https://yourcompany.com"
+            value={websiteUrl}
+            onChange={(e) => setWebsiteUrl(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && startDiagnostic()}
+            className="w-full bg-white/5 border border-white/15 rounded-xl px-5 py-4 text-white text-center mb-4 outline-none focus:border-[#ff6f20] transition-colors"
+          />
+          <button
+            onClick={startDiagnostic}
+            className="w-full bg-gradient-to-r from-[#ff6f20] to-[#e56318] text-white py-4 px-8 rounded-xl font-semibold hover:shadow-lg hover:shadow-[#ff6f20]/30 transition-all"
+          >
+            Start Building Your GTM OS →
+          </button>
+        </div>
+
+        <p className="mt-6 text-sm text-[#75716f]">5-7 minutes • AI-powered research • Actionable program</p>
       </div>
-      <p className="mt-6 text-sm text-white/40">5-7 minutes • AI research • PDF report</p>
     </div>
   );
   const renderSelectProduct = () => {
     if (productsLoading) {
+      const stage = loadingStages[loadingStage];
+      const insight = gtmInsights[currentInsight];
+
       return (
-        <div className="bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm p-11">
-          <div className="text-center py-12">
-            <div className="w-12 h-12 border-4 border-white/10 border-t-[#ff6f20] rounded-full animate-spin mx-auto mb-5" />
-            <h3 className="font-semibold text-xl mb-2">Analyzing {domain}</h3>
-            <p className="text-white/60">Identifying products and offerings...</p>
+        <div className="bg-gradient-to-br from-[#232120] to-[#070606] border border-[#3f3b3a] rounded-3xl p-11">
+          <div className="text-center py-8">
+            {/* Animated loader with stage icon */}
+            <div className="relative w-20 h-20 mx-auto mb-6">
+              <div className="absolute inset-0 border-4 border-[#3f3b3a] rounded-full" />
+              <div className="absolute inset-0 border-4 border-transparent border-t-[#ff6f20] rounded-full animate-spin" />
+              <div className="absolute inset-0 flex items-center justify-center text-3xl">
+                {stage.icon}
+              </div>
+            </div>
+
+            <h3 className="font-semibold text-xl mb-2" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>
+              {stage.text}
+            </h3>
+            <p className="text-[#75716f] text-sm mb-8">{stage.subtext}</p>
+
+            {/* Progress dots */}
+            <div className="flex justify-center gap-2 mb-8">
+              {loadingStages.map((_, i) => (
+                <div
+                  key={i}
+                  className={`w-2 h-2 rounded-full transition-all ${i <= loadingStage ? 'bg-[#ff6f20]' : 'bg-[#3f3b3a]'}`}
+                />
+              ))}
+            </div>
+
+            {/* Rotating insight */}
+            <div className="bg-[#070606]/50 border border-[#3f3b3a] rounded-xl p-4 max-w-md mx-auto">
+              <div className="flex items-start gap-3">
+                <span className="text-[#ffdd1f] text-lg">💡</span>
+                <p className="text-sm text-[#aaa7a6] text-left leading-relaxed">{insight}</p>
+              </div>
+            </div>
           </div>
         </div>
       );
@@ -748,11 +1419,92 @@ NO PREAMBLE. Start with paragraph 1.`);
           ))}
         </div>
         <div className="flex gap-3 mt-7">
-          <button onClick={prevStep} className="bg-white/5 border border-white/15 text-white py-4 px-8 rounded-lg font-medium hover:bg-white/10 transition-all">← Back</button>
-          <button 
+          <button type="button" onClick={prevStep} className="bg-white/5 border border-white/15 text-white py-4 px-8 rounded-lg font-medium hover:bg-white/10 transition-all">← Back</button>
+          <button
+            type="button"
             onClick={() => { if (selectedProduct) nextStep(); else showError("Please select a product to analyze"); }}
             className="flex-1 bg-gradient-to-r from-[#ff6f20] to-[#e56318] text-white py-4 px-8 rounded-lg font-semibold hover:shadow-lg hover:shadow-[#ff6f20]/30 transition-all"
           >Continue →</button>
+        </div>
+      </div>
+    );
+  };
+
+  const renderICPSelection = () => {
+    const isLoading = discoveredICPs.length === 0;
+    const toggleICP = (id: string) => {
+      setSelectedICPs(prev =>
+        prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id].slice(0, 3)
+      );
+    };
+
+    if (isLoading) {
+      return (
+        <div className="bg-gradient-to-br from-[#232120] to-[#070606] border border-[#3f3b3a] rounded-3xl p-11">
+          <div className="text-center py-12">
+            <div className="w-12 h-12 border-4 border-[#3f3b3a] border-t-[#5b2e5e] rounded-full animate-spin mx-auto mb-5" />
+            <h3 className="font-semibold text-xl mb-2">Discovering Your Buyers</h3>
+            <p className="text-[#75716f]">Identifying ideal customer profiles for {selectedProduct}...</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="bg-gradient-to-br from-[#232120] to-[#070606] border border-[#3f3b3a] rounded-3xl p-11">
+        <div className="inline-block px-3 py-1 bg-[#5b2e5e]/20 border border-[#5b2e5e]/30 rounded-full text-[#9a5d9d] text-xs font-semibold mb-4">
+          NARROW YOUR FOCUS
+        </div>
+        <h2 className="font-bold text-2xl mb-3">Who should we focus on?</h2>
+        <p className="text-[#aaa7a6] mb-6">Select 1-3 ideal customer profiles. This helps us generate more targeted signals, content, and outreach strategies.</p>
+
+        <div className="grid gap-3">
+          {discoveredICPs.map((icp) => (
+            <div
+              key={icp.id}
+              onClick={() => toggleICP(icp.id)}
+              className={`p-5 rounded-xl border-2 cursor-pointer transition-all ${
+                selectedICPs.includes(icp.id)
+                  ? "border-[#5b2e5e] bg-[#5b2e5e]/15"
+                  : "border-[#3f3b3a] bg-[#070606]/50 hover:border-[#5b2e5e]/50"
+              }`}
+            >
+              <div className="flex items-start gap-4">
+                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${
+                  selectedICPs.includes(icp.id)
+                    ? "border-[#5b2e5e] bg-[#5b2e5e]"
+                    : "border-[#5a5654]"
+                }`}>
+                  {selectedICPs.includes(icp.id) && (
+                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+                <div>
+                  <div className="font-semibold text-white">{icp.title}</div>
+                  <div className="text-sm text-[#aaa7a6] mt-1">{icp.description}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {selectedICPs.length > 0 && (
+          <div className="mt-4 text-sm text-[#75716f]">
+            {selectedICPs.length} of 3 max selected
+          </div>
+        )}
+
+        <div className="flex gap-3 mt-7">
+          <button type="button" onClick={prevStep} className="bg-white/5 border border-white/15 text-white py-4 px-8 rounded-lg font-medium hover:bg-white/10 transition-all">← Back</button>
+          <button
+            type="button"
+            onClick={() => { if (selectedICPs.length > 0) nextStep(); else showError("Please select at least one ICP"); }}
+            className="flex-1 bg-gradient-to-r from-[#5b2e5e] to-[#7a3d7d] text-white py-4 px-8 rounded-lg font-semibold hover:shadow-lg hover:shadow-[#5b2e5e]/30 transition-all"
+          >
+            Continue with {selectedICPs.length} ICP{selectedICPs.length !== 1 ? 's' : ''} →
+          </button>
         </div>
       </div>
     );
@@ -903,14 +1655,106 @@ Use the same ALL CAPS headers as the original. Write TO them using "you/your". N
           <label className="block mb-3 font-medium">GTM motion?</label>
           <div className="flex flex-col gap-2">
             {[{ v: "random", l: "Random acts of GTM" }, { v: "siloed", l: "Siloed teams" }, { v: "coordinated", l: "Coordinated but gaps" }, { v: "integrated", l: "Integrated" }, { v: "unified", l: "Unified revenue engine" }].map((opt) => (
-              <button key={opt.v} onClick={() => setAlignment(prev => ({ ...prev, gtm: opt.v }))} className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-all ${alignment.gtm === opt.v ? "border-[#ff6f20] bg-[#ff6f20]/10" : "border-white/15 bg-white/5 hover:border-[#ff6f20]/40"}`}>{opt.l}</button>
+              <button type="button" key={opt.v} onClick={() => setAlignment(prev => ({ ...prev, gtm: opt.v }))} className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-all ${alignment.gtm === opt.v ? "border-[#ff6f20] bg-[#ff6f20]/10" : "border-white/15 bg-white/5 hover:border-[#ff6f20]/40"}`}>{opt.l}</button>
             ))}
           </div>
         </div>
       </div>
       <div className="flex gap-3 mt-7">
-        <button onClick={prevStep} className="bg-white/5 border border-white/15 text-white py-4 px-8 rounded-lg font-medium hover:bg-white/10 transition-all">← Back</button>
-        <button onClick={() => setCurrentStep(steps.indexOf("generating"))} className="flex-1 bg-gradient-to-r from-[#ff6f20] to-[#e56318] text-white py-4 px-8 rounded-lg font-semibold hover:shadow-lg hover:shadow-[#ff6f20]/30 transition-all">Generate Report →</button>
+        <button type="button" onClick={prevStep} className="bg-white/5 border border-white/15 text-white py-4 px-8 rounded-lg font-medium hover:bg-white/10 transition-all">← Back</button>
+        <button type="button" onClick={() => setCurrentStep(steps.indexOf("generating"))} className="flex-1 bg-gradient-to-r from-[#ff6f20] to-[#e56318] text-white py-4 px-8 rounded-lg font-semibold hover:shadow-lg hover:shadow-[#ff6f20]/30 transition-all">Generate Report →</button>
+      </div>
+    </div>
+  );
+
+  // Combined signals + alignment step (moved later in flow as requested)
+  const renderSignalsAlignment = () => (
+    <div className="bg-gradient-to-br from-[#232120] to-[#070606] border border-[#3f3b3a] rounded-3xl p-11 space-y-10">
+      {/* Signal Stack Section */}
+      <div>
+        <div className="inline-block px-3 py-1 bg-[#ff6f20]/15 border border-[#ff6f20]/30 rounded-full text-[#ff6f20] text-xs font-semibold mb-4">
+          SIGNAL STACK
+        </div>
+        <h2 className="font-bold text-2xl mb-3">What signals do you currently track?</h2>
+        <p className="text-[#aaa7a6] mb-6">Select your signal tools and the types of buying signals you monitor.</p>
+
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-6">
+          {signalVendors.map((v) => (
+            <div
+              key={v.id}
+              onClick={() => setSelectedVendors(prev => prev.includes(v.id) ? prev.filter(x => x !== v.id) : [...prev, v.id])}
+              className={`p-4 rounded-xl border-2 cursor-pointer text-center transition-all ${selectedVendors.includes(v.id) ? "border-[#ff6f20] bg-[#ff6f20]/10" : "border-[#3f3b3a] bg-[#070606]/50 hover:border-[#ff6f20]/40"}`}
+            >
+              <img src={v.logo} alt={v.name} className="w-10 h-10 object-contain rounded-lg bg-white p-1 mx-auto mb-2" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              <div className="text-xs font-semibold">{v.name}</div>
+            </div>
+          ))}
+          <div
+            onClick={() => setSelectedVendors(prev => prev.includes("none") ? prev.filter(x => x !== "none") : [...prev, "none"])}
+            className={`p-4 rounded-xl border-2 cursor-pointer text-center transition-all ${selectedVendors.includes("none") ? "border-[#ff6f20] bg-[#ff6f20]/10" : "border-[#3f3b3a] bg-[#070606]/50 hover:border-[#ff6f20]/40"}`}
+          >
+            <div className="text-2xl mb-2">🚫</div>
+            <div className="text-xs font-semibold">None</div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          {signalTypes.map((s) => (
+            <div
+              key={s.id}
+              onClick={() => setSelectedSignals(prev => prev.includes(s.id) ? prev.filter(x => x !== s.id) : [...prev, s.id])}
+              className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${selectedSignals.includes(s.id) ? "border-[#ff6f20] bg-[#ff6f20]/10" : "border-[#3f3b3a] bg-[#070606]/50 hover:border-[#ff6f20]/40"}`}
+            >
+              <div className="font-semibold text-sm">{s.label}</div>
+              <div className="text-xs text-[#75716f]">{s.desc}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Team Alignment Section */}
+      <div className="border-t border-[#3f3b3a] pt-8">
+        <div className="inline-block px-3 py-1 bg-[#5b2e5e]/15 border border-[#5b2e5e]/30 rounded-full text-[#9a5d9d] text-xs font-semibold mb-4">
+          GTM ALIGNMENT
+        </div>
+        <h3 className="font-bold text-xl mb-3">How aligned is your GTM team?</h3>
+        <p className="text-[#aaa7a6] mb-4">This helps us calibrate recommendations for your maturity level.</p>
+
+        <div className="flex flex-col gap-2">
+          {[
+            { v: "random", l: "Random acts of GTM", d: "No coordinated strategy" },
+            { v: "siloed", l: "Siloed teams", d: "Marketing, Sales, CS work independently" },
+            { v: "coordinated", l: "Coordinated but gaps", d: "Some alignment, inconsistent execution" },
+            { v: "integrated", l: "Integrated", d: "Shared goals, regular collaboration" },
+            { v: "unified", l: "Unified revenue engine", d: "Full alignment, signal-driven" }
+          ].map((opt) => (
+            <button
+              type="button"
+              key={opt.v}
+              onClick={() => setAlignment(prev => ({ ...prev, gtm: opt.v }))}
+              className={`w-full text-left px-4 py-3 rounded-xl border-2 transition-all ${
+                alignment.gtm === opt.v
+                  ? "border-[#5b2e5e] bg-[#5b2e5e]/15"
+                  : "border-[#3f3b3a] bg-[#070606]/50 hover:border-[#5b2e5e]/40"
+              }`}
+            >
+              <div className="font-semibold">{opt.l}</div>
+              <div className="text-xs text-[#75716f]">{opt.d}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <div className="flex gap-3 pt-4">
+        <button type="button" onClick={prevStep} className="bg-white/5 border border-white/15 text-white py-4 px-8 rounded-xl font-medium hover:bg-white/10 transition-all">← Back</button>
+        <button
+          type="button"
+          onClick={() => setCurrentStep(steps.indexOf("generating"))}
+          className="flex-1 bg-gradient-to-r from-[#ff6f20] to-[#e56318] text-white py-4 px-8 rounded-xl font-semibold hover:shadow-lg hover:shadow-[#ff6f20]/30 transition-all"
+        >
+          Generate Your GTM OS →
+        </button>
       </div>
     </div>
   );
@@ -1000,9 +1844,134 @@ Use the same ALL CAPS headers as the original. Write TO them using "you/your". N
 
     const competitors = parseCompetitors();
     
-    const downloadReport = () => {
+    const downloadReport = async () => {
       const safeClean = (text: string) => text ? cleanResponse(text) : "(No data)";
-      const content = `GTM OPERATING SYSTEM DIAGNOSTIC
+
+      // Create PDF Document
+      const GTMReportPDF = () => (
+        <Document>
+          <Page size="A4" style={pdfStyles.page}>
+            {/* Header */}
+            <View style={pdfStyles.header}>
+              <Text style={pdfStyles.title}>{companyName || domain}</Text>
+              <Text style={pdfStyles.subtitle}>{selectedProduct} - GTM Operating System</Text>
+              <Text style={pdfStyles.date}>Generated by Smoke Signals AI • {new Date().toLocaleDateString()}</Text>
+            </View>
+
+            {/* Executive Summary */}
+            <View style={pdfStyles.section}>
+              <Text style={pdfStyles.sectionTitle}>The Bottom Line</Text>
+              {safeClean(reportData?.narrative).split('\n\n').map((p, i) => (
+                <Text key={i} style={pdfStyles.text}>{p}</Text>
+              ))}
+            </View>
+
+            {/* Alpha Signals */}
+            {alphaSignals.length > 0 && (
+              <View style={pdfStyles.section}>
+                <Text style={pdfStyles.sectionTitle}>Alpha Signals</Text>
+                <Text style={pdfStyles.text}>Buying indicators that predict intent before competitors notice</Text>
+                {alphaSignals.map((signal, i) => (
+                  <View key={i} style={pdfStyles.signalCard}>
+                    <Text style={pdfStyles.signalName}>{i + 1}. {signal.name}</Text>
+                    <Text style={pdfStyles.signalImpact}>{signal.impact}</Text>
+                    <Text style={pdfStyles.label}>Source: <Text style={pdfStyles.value}>{signal.source}</Text></Text>
+                    <Text style={pdfStyles.label}>Detection: <Text style={pdfStyles.value}>{signal.detection}</Text></Text>
+                    {signal.example && <Text style={pdfStyles.label}>Example: <Text style={pdfStyles.value}>{signal.example}</Text></Text>}
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Pillar Content */}
+            {pillarContent && (
+              <View style={pdfStyles.sectionPurple}>
+                <Text style={pdfStyles.sectionTitlePurple}>Pillar Content Concept</Text>
+                <Text style={pdfStyles.signalName}>{pillarContent.title}</Text>
+                <Text style={pdfStyles.text}>{pillarContent.concept}</Text>
+                <Text style={pdfStyles.label}>Data Sources: <Text style={pdfStyles.value}>{pillarContent.dataSources}</Text></Text>
+                <Text style={pdfStyles.label}>Cadence: <Text style={pdfStyles.value}>{pillarContent.cadence}</Text></Text>
+              </View>
+            )}
+          </Page>
+
+          <Page size="A4" style={pdfStyles.page}>
+            {/* Podcast Guests */}
+            {podcastGuests.length > 0 && (
+              <View style={pdfStyles.sectionYellow}>
+                <Text style={pdfStyles.sectionTitleYellow}>Podcast Guest Suggestions</Text>
+                <Text style={pdfStyles.text}>ICP-matching guests who expand your reach to ideal buyers</Text>
+                {podcastGuests.map((guest, i) => (
+                  <View key={i} style={pdfStyles.guestCard}>
+                    <Text style={pdfStyles.guestName}>{i + 1}. {guest.name}</Text>
+                    <Text style={pdfStyles.guestCompany}>{guest.company}</Text>
+                    <Text style={pdfStyles.label}>ICP Match: <Text style={pdfStyles.value}>{guest.icpMatch}</Text></Text>
+                    <Text style={pdfStyles.label}>Topic: <Text style={pdfStyles.value}>{guest.topic}</Text></Text>
+                    {guest.whyInvite && <Text style={pdfStyles.label}>Value: <Text style={pdfStyles.value}>{guest.whyInvite}</Text></Text>}
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Program Elements */}
+            <View style={pdfStyles.section}>
+              <Text style={pdfStyles.sectionTitle}>Signal-Driven GTM Program</Text>
+              <Text style={pdfStyles.text}>Each element feeds the next — signals generate content, content builds trust, trust accelerates pipeline.</Text>
+              <View style={pdfStyles.programGrid}>
+                <View style={pdfStyles.programItem}>
+                  <Text style={pdfStyles.programTitle}>VOC Program</Text>
+                  <Text style={pdfStyles.programDesc}>25 ICP conversations with topic guides</Text>
+                </View>
+                <View style={pdfStyles.programItem}>
+                  <Text style={pdfStyles.programTitle}>Social Listening</Text>
+                  <Text style={pdfStyles.programDesc}>50 ICP connections per month</Text>
+                </View>
+                <View style={pdfStyles.programItem}>
+                  <Text style={pdfStyles.programTitle}>ICP Podcasts</Text>
+                  <Text style={pdfStyles.programDesc}>4 strategic guest episodes</Text>
+                </View>
+                <View style={pdfStyles.programItem}>
+                  <Text style={pdfStyles.programTitle}>Pillar Content</Text>
+                  <Text style={pdfStyles.programDesc}>Signal-based reports</Text>
+                </View>
+                <View style={pdfStyles.programItem}>
+                  <Text style={pdfStyles.programTitle}>Signal Sequences</Text>
+                  <Text style={pdfStyles.programDesc}>Trigger-based outreach</Text>
+                </View>
+                <View style={pdfStyles.programItem}>
+                  <Text style={pdfStyles.programTitle}>HubSpot Enablement</Text>
+                  <Text style={pdfStyles.programDesc}>Meeting prep, sales process, reporting</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* CTA */}
+            <View style={pdfStyles.cta}>
+              <Text style={pdfStyles.ctaTitle}>Ready to Build Your Signal-Driven GTM?</Text>
+              <Text style={pdfStyles.ctaText}>Turn this diagnostic into a 90-day transformation. Strategy-first, tool-agnostic execution.</Text>
+              <Link src="https://smokesignals.ai/contact" style={pdfStyles.ctaLink}>Book a Strategy Session →</Link>
+            </View>
+
+            {/* Footer */}
+            <Text style={pdfStyles.footer}>© {new Date().getFullYear()} Smoke Signals AI • smokesignals.ai</Text>
+          </Page>
+        </Document>
+      );
+
+      try {
+        const blob = await pdf(<GTMReportPDF />).toBlob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `GTM-OS-${(domain || "report").replace(/[^a-z0-9]/gi, '-')}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('PDF generation error:', error);
+        // Fallback to text download
+        const content = `GTM OPERATING SYSTEM DIAGNOSTIC
 ================================================================================
 For: ${companyName || domain} - ${selectedProduct}
 Generated by Smoke Signals AI
@@ -1014,29 +1983,30 @@ EXECUTIVE NARRATIVE
 ${safeClean(reportData?.narrative)}
 
 ================================================================================
-ICP & PERSONAS
+ALPHA SIGNALS
 ================================================================================
-${safeClean(reportData?.icp)}
+${alphaSignals.map((s, i) => `${i + 1}. ${s.name}\n   Impact: ${s.impact}\n   Source: ${s.source}\n   Detection: ${s.detection}\n   Example: ${s.example}`).join('\n\n')}
 
 ================================================================================
-COMPETITIVE LANDSCAPE
+PILLAR CONTENT CONCEPT
 ================================================================================
-${safeClean(reportData?.competitive)}
+${pillarContent ? `${pillarContent.title}\n\n${pillarContent.concept}\n\nData Sources: ${pillarContent.dataSources}\nCadence: ${pillarContent.cadence}` : 'Not generated'}
 
 ================================================================================
-CONTENT STRATEGY
+PODCAST GUESTS
 ================================================================================
-${safeClean(reportData?.content)}
+${podcastGuests.map((g, i) => `${i + 1}. ${g.name} - ${g.company}\n   ICP Match: ${g.icpMatch}\n   Topic: ${g.topic}\n   Value: ${g.whyInvite}`).join('\n\n')}
 `;
-      const blob = new Blob([content], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `GTM-Diagnostic-${(domain || "report").replace(/[^a-z0-9]/gi, '-')}.txt`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `GTM-Diagnostic-${(domain || "report").replace(/[^a-z0-9]/gi, '-')}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
     };
 
     // Extract signals from ICP data for the flow visualization
@@ -1229,6 +2199,202 @@ ${safeClean(reportData?.content)}
           </div>
         </div>
 
+        {/* Alpha Signals Section */}
+        {alphaSignals.length > 0 && (
+          <div className="bg-gradient-to-br from-[#ff6f20]/5 via-[#232120] to-[#070606] border border-[#ff6f20]/30 rounded-3xl p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-xl bg-[#ff6f20]/20 flex items-center justify-center">
+                <svg className="w-6 h-6 text-[#ff6f20]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+              </div>
+              <div>
+                <h3 className="font-bold text-xl" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Alpha Signals</h3>
+                <p className="text-[#aaa7a6] text-sm">Buying indicators that predict intent before competitors notice</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {alphaSignals.map((signal, i) => (
+                <div key={i} className="bg-gradient-to-r from-[#ff6f20]/10 to-transparent border border-[#ff6f20]/20 rounded-2xl p-5">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: 'rgba(255, 111, 32, 0.35)', color: '#ff6f20' }}>
+                        {i + 1}
+                      </div>
+                      <h4 className="font-semibold text-white">{signal.name}</h4>
+                    </div>
+                    <span
+                      className="px-3 py-1 rounded-full text-xs font-medium"
+                      style={
+                        signal.impact.toLowerCase().includes('high')
+                          ? { backgroundColor: 'rgba(34, 197, 94, 0.25)', color: '#22c55e' }
+                          : signal.impact.toLowerCase().includes('medium')
+                          ? { backgroundColor: 'rgba(255, 221, 31, 0.25)', color: '#ffdd1f' }
+                          : { backgroundColor: 'rgba(255, 255, 255, 0.1)', color: 'rgba(255, 255, 255, 0.6)' }
+                      }
+                    >
+                      {signal.impact}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <span className="text-[#75716f]">Source:</span>
+                      <span className="text-[#dededd] ml-2">{signal.source}</span>
+                    </div>
+                    <div>
+                      <span className="text-[#75716f]">Detection:</span>
+                      <span className="text-[#dededd] ml-2">{signal.detection}</span>
+                    </div>
+                  </div>
+                  {signal.example && (
+                    <div className="mt-3 pt-3 border-t border-[#3f3b3a]">
+                      <span className="text-[#75716f] text-sm">Example: </span>
+                      <span className="text-[#aaa7a6] text-sm italic">{signal.example}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Pillar Content Section */}
+        {pillarContent && (
+          <div className="bg-gradient-to-br from-[#5b2e5e]/5 via-[#232120] to-[#070606] border border-[#5b2e5e]/30 rounded-3xl p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-xl bg-[#5b2e5e]/20 flex items-center justify-center">
+                <svg className="w-6 h-6 text-[#9a5d9d]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              </div>
+              <div>
+                <h3 className="font-bold text-xl" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Pillar Content Concept</h3>
+                <p className="text-[#aaa7a6] text-sm">Data-driven content that positions you as a thought leader</p>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-[#5b2e5e]/10 to-transparent border border-[#5b2e5e]/20 rounded-2xl p-6">
+              <h4 className="font-bold text-lg text-[#9a5d9d] mb-3">{pillarContent.title}</h4>
+              <p className="text-[#dededd] mb-4">{pillarContent.concept}</p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div className="bg-[#070606]/50 rounded-xl p-4">
+                  <div className="text-[#75716f] mb-1 font-medium">Data Sources</div>
+                  <div className="text-[#aaa7a6]">{pillarContent.dataSources}</div>
+                </div>
+                <div className="bg-[#070606]/50 rounded-xl p-4">
+                  <div className="text-[#75716f] mb-1 font-medium">Cadence</div>
+                  <div className="text-[#aaa7a6]">{pillarContent.cadence}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Podcast Guests Section */}
+        {podcastGuests.length > 0 && (
+          <div className="bg-gradient-to-br from-[#ffdd1f]/5 via-[#232120] to-[#070606] border border-[#ffdd1f]/30 rounded-3xl p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-xl bg-[#ffdd1f]/20 flex items-center justify-center">
+                <svg className="w-6 h-6 text-[#ffdd1f]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+              </div>
+              <div>
+                <h3 className="font-bold text-xl" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Podcast Guest Suggestions</h3>
+                <p className="text-[#aaa7a6] text-sm">ICP-matching guests who expand your reach to ideal buyers</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {podcastGuests.map((guest, i) => (
+                <div key={i} className="bg-gradient-to-r from-[#ffdd1f]/10 to-transparent border border-[#ffdd1f]/20 rounded-2xl p-5">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: 'rgba(255, 221, 31, 0.35)', color: '#ffdd1f' }}>
+                      {i + 1}
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-white">{guest.name}</h4>
+                      <p className="text-[#75716f] text-sm">{guest.company}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <span className="text-[#9a5d9d] font-medium">ICP Match:</span>
+                      <span className="text-[#aaa7a6] ml-2">{guest.icpMatch}</span>
+                    </div>
+                    <div>
+                      <span className="text-[#ff8f50] font-medium">Topic:</span>
+                      <span className="text-[#dededd] ml-2">{guest.topic}</span>
+                    </div>
+                    {guest.whyInvite && (
+                      <div className="mt-2 pt-2 border-t border-[#3f3b3a]">
+                        <span className="text-[#75716f] italic text-xs">{guest.whyInvite}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Program Elements - Value Prop */}
+        <div className="bg-gradient-to-br from-[#232120] to-[#070606] border border-[#3f3b3a] rounded-3xl p-8">
+          <div className="text-center mb-8">
+            <div className="inline-block px-4 py-1 bg-[#ff6f20]/15 border border-[#ff6f20]/30 rounded-full text-[#ff6f20] text-sm font-medium mb-4">
+              SIGNAL-DRIVEN GTM PROGRAM
+            </div>
+            <h3 className="font-bold text-2xl mb-2" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>The Complete System</h3>
+            <p className="text-[#aaa7a6] max-w-xl mx-auto">Each element feeds the next — signals generate content, content builds trust, trust accelerates pipeline.</p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
+              <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-[#5b2e5e]/20 flex items-center justify-center">
+                <svg className="w-5 h-5 text-[#9a5d9d]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+              </div>
+              <h4 className="font-semibold text-white text-sm mb-1">VOC Program</h4>
+              <p className="text-xs text-[#75716f]">25 ICP conversations with topic guides</p>
+            </div>
+
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
+              <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-[#ff6f20]/20 flex items-center justify-center">
+                <svg className="w-5 h-5 text-[#ff6f20]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+              </div>
+              <h4 className="font-semibold text-white text-sm mb-1">Social Listening</h4>
+              <p className="text-xs text-[#75716f]">50 ICP connections per month</p>
+            </div>
+
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
+              <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-[#ffdd1f]/20 flex items-center justify-center">
+                <svg className="w-5 h-5 text-[#ffdd1f]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+              </div>
+              <h4 className="font-semibold text-white text-sm mb-1">ICP Podcasts</h4>
+              <p className="text-xs text-[#75716f]">4 strategic guest episodes</p>
+            </div>
+
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
+              <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-[#22c55e]/20 flex items-center justify-center">
+                <svg className="w-5 h-5 text-[#22c55e]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              </div>
+              <h4 className="font-semibold text-white text-sm mb-1">Pillar Content</h4>
+              <p className="text-xs text-[#75716f]">Signal-based reports</p>
+            </div>
+
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
+              <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-[#ef4444]/20 flex items-center justify-center">
+                <svg className="w-5 h-5 text-[#ef4444]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+              </div>
+              <h4 className="font-semibold text-white text-sm mb-1">Signal Sequences</h4>
+              <p className="text-xs text-[#75716f]">Trigger-based outreach</p>
+            </div>
+
+            <div className="bg-gradient-to-r from-[#ff6f20]/10 to-[#5b2e5e]/10 border border-[#ff6f20]/30 rounded-xl p-4 text-center">
+              <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-gradient-to-r from-[#ff6f20]/30 to-[#5b2e5e]/30 flex items-center justify-center">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              </div>
+              <h4 className="font-semibold text-[#ff8f50] text-sm mb-1">HubSpot Enablement</h4>
+              <p className="text-xs text-[#75716f]">Meeting prep, sales process, reporting</p>
+            </div>
+          </div>
+        </div>
+
         {/* Personas & Signals Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Personas */}
@@ -1238,7 +2404,7 @@ ${safeClean(reportData?.content)}
               {personas.map((p, i) => (
                 <div key={i} className="bg-[#5b2e5e]/10 border border-[#5b2e5e]/20 rounded-xl p-4">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="w-8 h-8 rounded-full bg-[#5b2e5e]/30 flex items-center justify-center text-sm">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: 'rgba(91, 46, 94, 0.35)', color: '#9a5d9d' }}>
                       {i + 1}
                     </div>
                     <div className="font-semibold text-[#9a5d9d]">{p.title}</div>
@@ -1290,14 +2456,14 @@ ${safeClean(reportData?.content)}
   // Show loading state while hydrating from localStorage
   if (!isHydrated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#070606] via-[#232120] to-[#070606] p-6 text-white flex items-center justify-center">
+      <div className="min-h-screen p-6 text-white flex items-center justify-center" style={{ background: "linear-gradient(rgba(7,6,6,0.85), rgba(7,6,6,0.9)), url('/assets/hero-banner.png') center/cover fixed" }}>
         <div className="w-10 h-10 border-4 border-white/10 border-t-[#ff6f20] rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#070606] via-[#232120] to-[#070606] p-6 text-[#f9f9f9]" style={{ fontFamily: "var(--font-body), 'Open Sans', sans-serif" }}>
+    <div className="min-h-screen p-6 text-[#f9f9f9]" style={{ fontFamily: "var(--font-body), 'Open Sans', sans-serif", background: "linear-gradient(rgba(7,6,6,0.85), rgba(7,6,6,0.9)), url('/assets/hero-banner.png') center/cover fixed" }}>
       {/* Error Toast */}
       {errorToast && (
         <div className="fixed top-4 right-4 z-50 bg-[#ff1f40]/90 text-white px-5 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-in slide-in-from-top-2">
@@ -1324,13 +2490,11 @@ ${safeClean(reportData?.content)}
         {renderStepIndicator()}
         {step === "intro" && renderIntro()}
         {step === "select-product" && renderSelectProduct()}
-        {step === "basic" && renderBasic()}
+        {step === "icp-selection" && renderICPSelection()}
         {step === "research-company" && renderResearch("company", "Company Analysis")}
-        {step === "research-icp" && renderResearch("icp", "Ideal Customer Profile")}
         {step === "research-competitive" && renderResearch("competitive", "Competitive Landscape")}
         {step === "research-content" && renderResearch("content", "Content Strategy")}
-        {step === "signals" && renderSignals()}
-        {step === "alignment" && renderAlignment()}
+        {step === "signals-alignment" && renderSignalsAlignment()}
         {step === "generating" && renderGenerating()}
         {step === "results" && renderResults()}
       </div>
