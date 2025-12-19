@@ -1317,11 +1317,11 @@ NO PREAMBLE. Start with paragraph 1.`),
           SIGNAL-DRIVEN GTM OS
         </div>
 
-        <h2 className="font-bold text-3xl mb-4" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>
+        <h2 className="font-bold text-3xl mb-4 max-w-2xl mx-auto" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>
           Build Your Signal-Driven GTM Operating System
         </h2>
 
-        <p className="text-[#aaa7a6] mb-4 max-w-lg mx-auto leading-relaxed">
+        <p className="text-[#aaa7a6] mb-4 max-w-xl mx-auto leading-relaxed">
           We&apos;ll analyze your business and get your feedback on key assumptions to create a complete signal-driven go-to-market system.
         </p>
 
@@ -2456,14 +2456,14 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.name} - ${g.company}\n   ICP Match:
   // Show loading state while hydrating from localStorage
   if (!isHydrated) {
     return (
-      <div className="min-h-screen p-6 text-white flex items-center justify-center" style={{ background: "linear-gradient(rgba(7,6,6,0.85), rgba(7,6,6,0.9)), url('/assets/hero-banner.png') center/cover fixed" }}>
+      <div className="min-h-screen p-6 text-white flex items-center justify-center" style={{ backgroundImage: "linear-gradient(rgba(7,6,6,0.15), rgba(7,6,6,0.15)), url('/hero-banner.png')", backgroundSize: "cover", backgroundPosition: "center", backgroundAttachment: "fixed" }}>
         <div className="w-10 h-10 border-4 border-white/10 border-t-[#ff6f20] rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen p-6 text-[#f9f9f9]" style={{ fontFamily: "var(--font-body), 'Open Sans', sans-serif", background: "linear-gradient(rgba(7,6,6,0.85), rgba(7,6,6,0.9)), url('/assets/hero-banner.png') center/cover fixed" }}>
+    <div className="min-h-screen p-6 text-[#f9f9f9]" style={{ fontFamily: "var(--font-body), 'Open Sans', sans-serif", backgroundImage: "linear-gradient(rgba(7,6,6,0.15), rgba(7,6,6,0.15)), url('/hero-banner.png')", backgroundSize: "cover", backgroundPosition: "center", backgroundAttachment: "fixed" }}>
       {/* Error Toast */}
       {errorToast && (
         <div className="fixed top-4 right-4 z-50 bg-[#ff1f40]/90 text-white px-5 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-in slide-in-from-top-2">
@@ -2473,7 +2473,7 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.name} - ${g.company}\n   ICP Match:
         </div>
       )}
 
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <img src="https://smokesignals.ai/hs-fs/hubfs/Smoke_Signals/img/smokesignal-logo.png" alt="Smoke Signals AI" className="h-12 mx-auto mb-4" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           <h1 className="text-3xl font-bold" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>GTM Operating System Diagnostic</h1>
