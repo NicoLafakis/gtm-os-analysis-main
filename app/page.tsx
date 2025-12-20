@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { pdf, Document, Page, Text, View, Image, StyleSheet, Link } from '@react-pdf/renderer';
 
@@ -305,6 +305,19 @@ export default function Home() {
   const [loadingStage, setLoadingStage] = useState(0);
   const [currentInsight, setCurrentInsight] = useState(0);
 
+  // Scroll-triggered section expansion state
+  const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set());
+  const sectionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  // Register a section ref for IntersectionObserver
+  const registerSectionRef = useCallback((id: string, element: HTMLDivElement | null) => {
+    if (element) {
+      sectionRefs.current.set(id, element);
+    } else {
+      sectionRefs.current.delete(id);
+    }
+  }, []);
+
   // Load session from localStorage on mount
   useEffect(() => {
     try {
@@ -393,6 +406,32 @@ export default function Home() {
       };
     }
   }, [productsLoading, currentStep]);
+
+  // IntersectionObserver for scroll-triggered section expansion
+  useEffect(() => {
+    if (currentStep !== steps.indexOf("results")) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const sectionId = entry.target.getAttribute('data-section-id');
+            if (sectionId) {
+              setVisibleSections(prev => new Set([...prev, sectionId]));
+            }
+          }
+        });
+      },
+      { threshold: 0.15, rootMargin: '-50px 0px' }
+    );
+
+    // Observe all registered sections
+    sectionRefs.current.forEach((element) => {
+      observer.observe(element);
+    });
+
+    return () => observer.disconnect();
+  }, [currentStep]);
 
   const clearSession = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
@@ -2171,86 +2210,30 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.name} - ${g.company}\n   ICP Match:
           </div>
         </div>
 
-        {/* Signal-to-Action Flow Visualization */}
+        {/* Transformation Overview */}
         <div className="bg-gradient-to-br from-[#232120] to-[#070606] border border-[#3f3b3a] rounded-3xl p-8">
-          <div className="text-center mb-8">
-            <h3 className="font-bold text-xl mb-2" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Your Signal-Driven GTM System</h3>
-            <p className="text-[#aaa7a6] text-sm">How your ICP, signals, and content connect to drive pipeline</p>
+          <div className="text-center mb-6">
+            <h3 className="font-bold text-xl mb-2" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Your GTM Transformation</h3>
+            <p className="text-[#aaa7a6] text-sm">Scroll to explore each dimension of your Signal-Driven GTM system</p>
           </div>
 
-          {/* Flow Diagram */}
-          <div className="relative">
-            {/* Connection Lines (SVG) */}
-            <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
-              <defs>
-                <linearGradient id="flowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#5b2e5e" />
-                  <stop offset="50%" stopColor="#ff6f20" />
-                  <stop offset="100%" stopColor="#22c55e" />
-                </linearGradient>
-              </defs>
-            </svg>
-
-            <div className="grid grid-cols-4 gap-4 relative" style={{ zIndex: 1 }}>
-              {/* ICP Node */}
-              <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-[#5b2e5e] to-[#5b2e5e]/60 flex items-center justify-center shadow-lg shadow-[#5b2e5e]/30">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                </div>
-                <div className="font-semibold text-sm text-[#9a5d9d]">ICP</div>
-                <div className="text-xs text-[#75716f] mt-1">{selectedICPs.length || personas.length} Personas</div>
-              </div>
-
-              {/* Arrow */}
-              <div className="flex items-center justify-center">
-                <div className="h-0.5 w-full bg-gradient-to-r from-[#5b2e5e] to-[#ff6f20] relative">
-                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#ff6f20] rotate-45" />
-                </div>
-              </div>
-
-              {/* Signals Node */}
-              <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-[#ff6f20] to-[#e56318] flex items-center justify-center shadow-lg shadow-[#ff6f20]/30">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                </div>
-                <div className="font-semibold text-sm text-[#ff8f50]">SIGNALS</div>
-                <div className="text-xs text-[#75716f] mt-1">{signals.length || selectedSignals.length} Active</div>
-              </div>
-
-              {/* Arrow */}
-              <div className="flex items-center justify-center">
-                <div className="h-0.5 w-full bg-gradient-to-r from-[#ff6f20] to-[#22c55e] relative">
-                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#22c55e] rotate-45" />
-                </div>
-              </div>
+          {/* Quick Stats Row */}
+          <div className="grid grid-cols-4 gap-4">
+            <div className="text-center p-4 bg-[#5b2e5e]/10 rounded-xl border border-[#5b2e5e]/20">
+              <div className="text-2xl font-bold text-[#9a5d9d]">{selectedICPs.length || personas.length}</div>
+              <div className="text-xs text-[#75716f]">Target Personas</div>
             </div>
-
-            {/* Second Row */}
-            <div className="grid grid-cols-4 gap-4 mt-6 relative" style={{ zIndex: 1 }}>
-              {/* Content Node */}
-              <div className="text-center col-start-2">
-                <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-[#ffdd1f] to-[#f59e0b] flex items-center justify-center shadow-lg shadow-[#ffdd1f]/30">
-                  <svg className="w-8 h-8 text-[#070606]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
-                </div>
-                <div className="font-semibold text-sm text-[#ffdd1f]">CONTENT</div>
-                <div className="text-xs text-[#75716f] mt-1">Grade: {grade}</div>
-              </div>
-
-              {/* Arrow */}
-              <div className="flex items-center justify-center">
-                <div className="h-0.5 w-full bg-gradient-to-r from-[#ffdd1f] to-[#22c55e] relative">
-                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#22c55e] rotate-45" />
-                </div>
-              </div>
-
-              {/* Outreach Node */}
-              <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-[#22c55e] to-[#16a34a] flex items-center justify-center shadow-lg shadow-[#22c55e]/30">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
-                </div>
-                <div className="font-semibold text-sm text-[#22c55e]">OUTREACH</div>
-                <div className="text-xs text-[#75716f] mt-1">Signal-Driven</div>
-              </div>
+            <div className="text-center p-4 bg-[#ff6f20]/10 rounded-xl border border-[#ff6f20]/20">
+              <div className="text-2xl font-bold text-[#ff6f20]">{alphaSignals.length}</div>
+              <div className="text-xs text-[#75716f]">Alpha Signals</div>
+            </div>
+            <div className="text-center p-4 bg-[#ffdd1f]/10 rounded-xl border border-[#ffdd1f]/20">
+              <div className={`text-2xl font-bold ${gradeColors[grade]}`}>{grade}</div>
+              <div className="text-xs text-[#75716f]">Content Grade</div>
+            </div>
+            <div className="text-center p-4 bg-[#22c55e]/10 rounded-xl border border-[#22c55e]/20">
+              <div className="text-2xl font-bold text-[#22c55e]">{podcastGuests.length}</div>
+              <div className="text-xs text-[#75716f]">Podcast Guests</div>
             </div>
           </div>
         </div>
@@ -2272,310 +2255,574 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.name} - ${g.company}\n   ICP Match:
           </div>
         </div>
 
-        {/* Content Strategy - Scaffolded for Podcast, VOC, Signal-Based */}
-        <div className="bg-gradient-to-br from-[#232120] to-[#070606] border border-[#3f3b3a] rounded-3xl p-8">
-          <h3 className="font-bold text-xl mb-6" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Content Engine</h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            {/* Signal-Based Content */}
-            <div className="bg-gradient-to-br from-[#ff6f20]/10 to-transparent border border-[#ff6f20]/20 rounded-2xl p-5">
-              <div className="w-10 h-10 rounded-lg bg-[#ff6f20]/20 flex items-center justify-center mb-3">
-                <svg className="w-5 h-5 text-[#ff6f20]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+        {/* ==================== SECTION 1: TARGETING ==================== */}
+        <div
+          ref={(el) => registerSectionRef('targeting', el)}
+          data-section-id="targeting"
+          className="bg-gradient-to-br from-[#232120] to-[#070606] border border-[#5b2e5e]/30 rounded-3xl overflow-hidden"
+        >
+          <button
+            type="button"
+            onClick={() => setVisibleSections(prev => {
+              const next = new Set(prev);
+              if (next.has('targeting')) next.delete('targeting');
+              else next.add('targeting');
+              return next;
+            })}
+            className="w-full p-6 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-[#5b2e5e]/20 flex items-center justify-center">
+                <svg className="w-6 h-6 text-[#9a5d9d]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
               </div>
-              <h4 className="font-semibold text-[#ff8f50] mb-2">Signal-Based Content</h4>
-              <p className="text-sm text-[#aaa7a6] mb-3">Content triggered by aggregate signals across accounts — addressing pain at the moment it surfaces.</p>
-              <div className="text-xs text-[#5a5654] italic">Coming soon: AI-generated content from signal patterns</div>
-            </div>
-
-            {/* VOC Content */}
-            <div className="bg-gradient-to-br from-[#5b2e5e]/10 to-transparent border border-[#5b2e5e]/20 rounded-2xl p-5">
-              <div className="w-10 h-10 rounded-lg bg-[#5b2e5e]/20 flex items-center justify-center mb-3">
-                <svg className="w-5 h-5 text-[#9a5d9d]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-              </div>
-              <h4 className="font-semibold text-[#9a5d9d] mb-2">Voice of Customer</h4>
-              <p className="text-sm text-[#aaa7a6] mb-3">LinkedIn-sourced pain points and discussions that reveal what your buyers actually care about.</p>
-              <div className="text-xs text-[#5a5654] italic">Coming soon: Pain-point research integration</div>
-            </div>
-
-            {/* Podcast */}
-            <div className="bg-gradient-to-br from-[#ffdd1f]/10 to-transparent border border-[#ffdd1f]/20 rounded-2xl p-5">
-              <div className="w-10 h-10 rounded-lg bg-[#ffdd1f]/20 flex items-center justify-center mb-3">
-                <svg className="w-5 h-5 text-[#ffdd1f]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
-              </div>
-              <h4 className="font-semibold text-[#ffdd1f] mb-2">Podcast Strategy</h4>
-              <p className="text-sm text-[#aaa7a6] mb-3">VOC-driven podcast topics that become posts, all stemming from real buyer pain.</p>
-              <div className="text-xs text-[#5a5654] italic">Coming soon: Topic recommendations</div>
-            </div>
-          </div>
-
-          {/* Current Content Analysis */}
-          <div className="border-t border-[#3f3b3a] pt-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className={`text-3xl font-bold ${gradeColors[grade]}`}>{grade}</div>
               <div>
-                <div className="font-medium text-white">Current Content Grade</div>
-                <div className="text-sm text-[#75716f]">Based on ICP alignment and presence</div>
+                <h3 className="font-bold text-xl" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Targeting & ICP</h3>
+                <p className="text-sm text-[#75716f]">From broad demographics to signal-driven personas</p>
               </div>
             </div>
-            <p className="text-[#aaa7a6] text-sm leading-relaxed">
-              {cleanResponse(reportData.content).split('\n').slice(0, 3).join(' ').substring(0, 200)}...
-            </p>
+            <svg className={`w-5 h-5 text-[#75716f] transition-transform duration-300 ${visibleSections.has('targeting') ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          <div className={`transition-all duration-500 ease-out ${visibleSections.has('targeting') ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+            <div className="px-6 pb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Current State */}
+                <div className="bg-[#3f3b3a]/20 border border-[#3f3b3a] rounded-2xl p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-6 h-6 rounded-full bg-[#ef4444]/20 flex items-center justify-center">
+                      <span className="text-[#ef4444] text-sm">✗</span>
+                    </div>
+                    <span className="text-[#aaa7a6] font-medium uppercase text-xs tracking-wider">Current State</span>
+                  </div>
+                  <ul className="space-y-3 text-sm text-[#aaa7a6]">
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#ef4444] mt-1">•</span>
+                      <span>Broad job title targeting with minimal behavioral data</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#ef4444] mt-1">•</span>
+                      <span>Static ICPs that don&apos;t evolve with market changes</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#ef4444] mt-1">•</span>
+                      <span>Missing the &ldquo;jobs to be done&rdquo; context for outreach</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Future State */}
+                <div className="bg-[#5b2e5e]/10 border border-[#5b2e5e]/30 rounded-2xl p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-6 h-6 rounded-full bg-[#22c55e]/20 flex items-center justify-center">
+                      <span className="text-[#22c55e] text-sm">✓</span>
+                    </div>
+                    <span className="text-[#9a5d9d] font-medium uppercase text-xs tracking-wider">Future State</span>
+                  </div>
+                  <ul className="space-y-3 text-sm text-[#dededd]">
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#22c55e] mt-1">•</span>
+                      <span>Signal-enriched personas with buying intent indicators</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#22c55e] mt-1">•</span>
+                      <span>Dynamic ICP refinement based on closed-won patterns</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#22c55e] mt-1">•</span>
+                      <span>JTBD-driven messaging that resonates with real pain</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Your Personas */}
+              <div className="mt-6 border-t border-[#3f3b3a] pt-6">
+                <h4 className="font-semibold text-[#9a5d9d] mb-4">Your Target Personas</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {personas.map((p, i) => (
+                    <div key={i} className="bg-[#5b2e5e]/10 border border-[#5b2e5e]/20 rounded-xl p-4">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: 'rgba(91, 46, 94, 0.35)', color: '#9a5d9d' }}>
+                          {i + 1}
+                        </div>
+                        <div className="font-semibold text-white text-sm">{p.title}</div>
+                      </div>
+                      {p.goal && <p className="text-xs text-[#aaa7a6] ml-11">{p.goal}</p>}
+                      {p.jtbd && <p className="text-xs text-[#75716f] italic ml-11 mt-1">&ldquo;{p.jtbd}&rdquo;</p>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Alpha Signals Section */}
-        {alphaSignals.length > 0 && (
-          <div className="bg-gradient-to-br from-[#ff6f20]/5 via-[#232120] to-[#070606] border border-[#ff6f20]/30 rounded-3xl p-8">
-            <div className="flex items-center gap-3 mb-6">
+        {/* ==================== SECTION 2: SIGNALS ==================== */}
+        <div
+          ref={(el) => registerSectionRef('signals', el)}
+          data-section-id="signals"
+          className="bg-gradient-to-br from-[#232120] to-[#070606] border border-[#ff6f20]/30 rounded-3xl overflow-hidden"
+        >
+          <button
+            type="button"
+            onClick={() => setVisibleSections(prev => {
+              const next = new Set(prev);
+              if (next.has('signals')) next.delete('signals');
+              else next.add('signals');
+              return next;
+            })}
+            className="w-full p-6 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
+          >
+            <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-[#ff6f20]/20 flex items-center justify-center">
                 <svg className="w-6 h-6 text-[#ff6f20]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
               </div>
               <div>
-                <h3 className="font-bold text-xl" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Alpha Signals</h3>
-                <p className="text-[#aaa7a6] text-sm">Buying indicators that predict intent before competitors notice</p>
+                <h3 className="font-bold text-xl" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Signals & Intent</h3>
+                <p className="text-sm text-[#75716f]">From reactive prospecting to predictive alpha signals</p>
               </div>
             </div>
+            <svg className={`w-5 h-5 text-[#75716f] transition-transform duration-300 ${visibleSections.has('signals') ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
 
-            <div className="space-y-4">
-              {alphaSignals.map((signal, i) => (
-                <div key={i} className="bg-gradient-to-r from-[#ff6f20]/10 to-transparent border border-[#ff6f20]/20 rounded-2xl p-5">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: 'rgba(255, 111, 32, 0.35)', color: '#ff6f20' }}>
-                        {i + 1}
+          <div className={`transition-all duration-500 ease-out ${visibleSections.has('signals') ? 'max-h-[3000px] opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+            <div className="px-6 pb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Current State */}
+                <div className="bg-[#3f3b3a]/20 border border-[#3f3b3a] rounded-2xl p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-6 h-6 rounded-full bg-[#ef4444]/20 flex items-center justify-center">
+                      <span className="text-[#ef4444] text-sm">✗</span>
+                    </div>
+                    <span className="text-[#aaa7a6] font-medium uppercase text-xs tracking-wider">Current State</span>
+                  </div>
+                  <ul className="space-y-3 text-sm text-[#aaa7a6]">
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#ef4444] mt-1">•</span>
+                      <span>Reacting to inbound leads after competitors engage</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#ef4444] mt-1">•</span>
+                      <span>Generic intent data without actionable triggers</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#ef4444] mt-1">•</span>
+                      <span>Missing early buying signals that predict pipeline</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Future State */}
+                <div className="bg-[#ff6f20]/10 border border-[#ff6f20]/30 rounded-2xl p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-6 h-6 rounded-full bg-[#22c55e]/20 flex items-center justify-center">
+                      <span className="text-[#22c55e] text-sm">✓</span>
+                    </div>
+                    <span className="text-[#ff8f50] font-medium uppercase text-xs tracking-wider">Future State</span>
+                  </div>
+                  <ul className="space-y-3 text-sm text-[#dededd]">
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#22c55e] mt-1">•</span>
+                      <span>Alpha signals detect intent before competitors notice</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#22c55e] mt-1">•</span>
+                      <span>Multi-source signal aggregation for higher confidence</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#22c55e] mt-1">•</span>
+                      <span>Automated workflows triggered by signal patterns</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Alpha Signals */}
+              {alphaSignals.length > 0 && (
+                <div className="mt-6 border-t border-[#3f3b3a] pt-6">
+                  <h4 className="font-semibold text-[#ff8f50] mb-4">Your Alpha Signals</h4>
+                  <div className="space-y-4">
+                    {alphaSignals.map((signal, i) => (
+                      <div key={i} className="bg-gradient-to-r from-[#ff6f20]/10 to-transparent border border-[#ff6f20]/20 rounded-2xl p-5">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: 'rgba(255, 111, 32, 0.35)', color: '#ff6f20' }}>
+                              {i + 1}
+                            </div>
+                            <h4 className="font-semibold text-white">{signal.name}</h4>
+                          </div>
+                          <span
+                            className="px-3 py-1 rounded-full text-xs font-medium"
+                            style={
+                              signal.impact.toLowerCase().includes('high')
+                                ? { backgroundColor: 'rgba(34, 197, 94, 0.25)', color: '#22c55e' }
+                                : signal.impact.toLowerCase().includes('medium')
+                                ? { backgroundColor: 'rgba(255, 221, 31, 0.25)', color: '#ffdd1f' }
+                                : { backgroundColor: 'rgba(255, 255, 255, 0.1)', color: 'rgba(255, 255, 255, 0.6)' }
+                            }
+                          >
+                            {signal.impact}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <span className="text-[#75716f]">Source:</span>
+                            <span className="text-[#dededd] ml-2">{signal.source}</span>
+                          </div>
+                          <div>
+                            <span className="text-[#75716f]">Detection:</span>
+                            <span className="text-[#dededd] ml-2">{signal.detection}</span>
+                          </div>
+                        </div>
+                        {signal.example && (
+                          <div className="mt-3 pt-3 border-t border-[#3f3b3a]">
+                            <span className="text-[#75716f] text-sm">Example: </span>
+                            <span className="text-[#aaa7a6] text-sm italic">{signal.example}</span>
+                          </div>
+                        )}
                       </div>
-                      <h4 className="font-semibold text-white">{signal.name}</h4>
-                    </div>
-                    <span
-                      className="px-3 py-1 rounded-full text-xs font-medium"
-                      style={
-                        signal.impact.toLowerCase().includes('high')
-                          ? { backgroundColor: 'rgba(34, 197, 94, 0.25)', color: '#22c55e' }
-                          : signal.impact.toLowerCase().includes('medium')
-                          ? { backgroundColor: 'rgba(255, 221, 31, 0.25)', color: '#ffdd1f' }
-                          : { backgroundColor: 'rgba(255, 255, 255, 0.1)', color: 'rgba(255, 255, 255, 0.6)' }
-                      }
-                    >
-                      {signal.impact}
-                    </span>
+                    ))}
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <span className="text-[#75716f]">Source:</span>
-                      <span className="text-[#dededd] ml-2">{signal.source}</span>
-                    </div>
-                    <div>
-                      <span className="text-[#75716f]">Detection:</span>
-                      <span className="text-[#dededd] ml-2">{signal.detection}</span>
-                    </div>
-                  </div>
-                  {signal.example && (
-                    <div className="mt-3 pt-3 border-t border-[#3f3b3a]">
-                      <span className="text-[#75716f] text-sm">Example: </span>
-                      <span className="text-[#aaa7a6] text-sm italic">{signal.example}</span>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Pillar Content Section */}
-        {pillarContent && (
-          <div className="bg-gradient-to-br from-[#5b2e5e]/5 via-[#232120] to-[#070606] border border-[#5b2e5e]/30 rounded-3xl p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-xl bg-[#5b2e5e]/20 flex items-center justify-center">
-                <svg className="w-6 h-6 text-[#9a5d9d]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-              </div>
-              <div>
-                <h3 className="font-bold text-xl" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Pillar Content Concept</h3>
-                <p className="text-[#aaa7a6] text-sm">Data-driven content that positions you as a thought leader</p>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-r from-[#5b2e5e]/10 to-transparent border border-[#5b2e5e]/20 rounded-2xl p-6">
-              <h4 className="font-bold text-lg text-[#9a5d9d] mb-3">{pillarContent.title}</h4>
-              <p className="text-[#dededd] mb-4">{pillarContent.concept}</p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div className="bg-[#070606]/50 rounded-xl p-4">
-                  <div className="text-[#75716f] mb-1 font-medium">Data Sources</div>
-                  <div className="text-[#aaa7a6]">{pillarContent.dataSources}</div>
-                </div>
-                <div className="bg-[#070606]/50 rounded-xl p-4">
-                  <div className="text-[#75716f] mb-1 font-medium">Cadence</div>
-                  <div className="text-[#aaa7a6]">{pillarContent.cadence}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Podcast Guests Section */}
-        {podcastGuests.length > 0 && (
-          <div className="bg-gradient-to-br from-[#ffdd1f]/5 via-[#232120] to-[#070606] border border-[#ffdd1f]/30 rounded-3xl p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-xl bg-[#ffdd1f]/20 flex items-center justify-center">
-                <svg className="w-6 h-6 text-[#ffdd1f]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
-              </div>
-              <div>
-                <h3 className="font-bold text-xl" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Podcast Guest Suggestions</h3>
-                <p className="text-[#aaa7a6] text-sm">ICP-matching guests who expand your reach to ideal buyers</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {podcastGuests.map((guest, i) => (
-                <div key={i} className="bg-gradient-to-r from-[#ffdd1f]/10 to-transparent border border-[#ffdd1f]/20 rounded-2xl p-5">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: 'rgba(255, 221, 31, 0.35)', color: '#ffdd1f' }}>
-                      {i + 1}
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-white">{guest.name}</h4>
-                      <p className="text-[#75716f] text-sm">{guest.company}</p>
-                    </div>
-                  </div>
-                  <div className="space-y-2 text-sm">
-                    <div>
-                      <span className="text-[#9a5d9d] font-medium">ICP Match:</span>
-                      <span className="text-[#aaa7a6] ml-2">{guest.icpMatch}</span>
-                    </div>
-                    <div>
-                      <span className="text-[#ff8f50] font-medium">Topic:</span>
-                      <span className="text-[#dededd] ml-2">{guest.topic}</span>
-                    </div>
-                    {guest.whyInvite && (
-                      <div className="mt-2 pt-2 border-t border-[#3f3b3a]">
-                        <span className="text-[#75716f] italic text-xs">{guest.whyInvite}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Program Elements - Value Prop */}
-        <div className="bg-gradient-to-br from-[#232120] to-[#070606] border border-[#3f3b3a] rounded-3xl p-8">
-          <div className="text-center mb-8">
-            <div className="inline-block px-4 py-1 bg-[#ff6f20]/15 border border-[#ff6f20]/30 rounded-full text-[#ff6f20] text-sm font-medium mb-4">
-              SIGNAL-DRIVEN GTM PROGRAM
-            </div>
-            <h3 className="font-bold text-2xl mb-2" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>The Complete System</h3>
-            <p className="text-[#aaa7a6] max-w-xl mx-auto">Each element feeds the next — signals generate content, content builds trust, trust accelerates pipeline.</p>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-              <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-[#5b2e5e]/20 flex items-center justify-center">
-                <svg className="w-5 h-5 text-[#9a5d9d]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-              </div>
-              <h4 className="font-semibold text-white text-sm mb-1">VOC Program</h4>
-              <p className="text-xs text-[#75716f]">25 ICP conversations with topic guides</p>
-            </div>
-
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-              <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-[#ff6f20]/20 flex items-center justify-center">
-                <svg className="w-5 h-5 text-[#ff6f20]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-              </div>
-              <h4 className="font-semibold text-white text-sm mb-1">Social Listening</h4>
-              <p className="text-xs text-[#75716f]">50 ICP connections per month</p>
-            </div>
-
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-              <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-[#ffdd1f]/20 flex items-center justify-center">
-                <svg className="w-5 h-5 text-[#ffdd1f]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
-              </div>
-              <h4 className="font-semibold text-white text-sm mb-1">ICP Podcasts</h4>
-              <p className="text-xs text-[#75716f]">4 strategic guest episodes</p>
-            </div>
-
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-              <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-[#22c55e]/20 flex items-center justify-center">
-                <svg className="w-5 h-5 text-[#22c55e]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-              </div>
-              <h4 className="font-semibold text-white text-sm mb-1">Pillar Content</h4>
-              <p className="text-xs text-[#75716f]">Signal-based reports</p>
-            </div>
-
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-              <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-[#ef4444]/20 flex items-center justify-center">
-                <svg className="w-5 h-5 text-[#ef4444]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-              </div>
-              <h4 className="font-semibold text-white text-sm mb-1">Signal Sequences</h4>
-              <p className="text-xs text-[#75716f]">Trigger-based outreach</p>
-            </div>
-
-            <div className="bg-gradient-to-r from-[#ff6f20]/10 to-[#5b2e5e]/10 border border-[#ff6f20]/30 rounded-xl p-4 text-center">
-              <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-gradient-to-r from-[#ff6f20]/30 to-[#5b2e5e]/30 flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-              </div>
-              <h4 className="font-semibold text-[#ff8f50] text-sm mb-1">HubSpot Enablement</h4>
-              <p className="text-xs text-[#75716f]">Meeting prep, sales process, reporting</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Personas & Signals Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Personas */}
-          <div className="bg-gradient-to-br from-[#232120] to-[#070606] border border-[#3f3b3a] rounded-3xl p-6">
-            <h3 className="font-bold text-lg mb-4" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Target Personas</h3>
-            <div className="space-y-3">
-              {personas.map((p, i) => (
-                <div key={i} className="bg-[#5b2e5e]/10 border border-[#5b2e5e]/20 rounded-xl p-4">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: 'rgba(91, 46, 94, 0.35)', color: '#9a5d9d' }}>
-                      {i + 1}
-                    </div>
-                    <div className="font-semibold text-[#9a5d9d]">{p.title}</div>
-                  </div>
-                  {p.goal && <p className="text-sm text-[#aaa7a6] ml-11">{p.goal}</p>}
-                  {p.jtbd && <p className="text-xs text-[#75716f] italic ml-11 mt-1">&quot;{p.jtbd}&quot;</p>}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Competitive Snapshot - Collapsible */}
-          {competitors.length > 0 && (
-            <div className="bg-gradient-to-br from-[#232120] to-[#070606] border border-[#3f3b3a] rounded-3xl overflow-hidden">
-              <button
-                type="button"
-                onClick={() => setCompetitiveExpanded(!competitiveExpanded)}
-                className="w-full p-6 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-[#3f3b3a]/50 flex items-center justify-center text-sm">🏆</div>
-                  <div>
-                    <h3 className="font-bold text-lg" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Competitive Landscape</h3>
-                    <p className="text-xs text-[#75716f]">{competitors.length} competitors analyzed</p>
-                  </div>
-                </div>
-                <svg className={`w-5 h-5 text-[#75716f] transition-transform ${competitiveExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              {competitiveExpanded && (
-                <div className="px-6 pb-6 space-y-3">
-                  {competitors.map((c, i) => (
-                    <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-4">
-                      <div className="font-semibold text-white mb-2">{c.name}</div>
-                      <div className="grid grid-cols-3 gap-2 text-xs">
-                        <div><span className="text-[#22c55e]">+</span> <span className="text-[#aaa7a6]">{c.strength || "—"}</span></div>
-                        <div><span className="text-[#ef4444]">−</span> <span className="text-[#aaa7a6]">{c.weakness || "—"}</span></div>
-                        <div><span className="text-[#ff6f20]">→</span> <span className="text-[#aaa7a6]">{c.youWin || "—"}</span></div>
-                      </div>
-                    </div>
-                  ))}
                 </div>
               )}
             </div>
-          )}
+          </div>
         </div>
+
+        {/* ==================== SECTION 3: CONTENT ==================== */}
+        <div
+          ref={(el) => registerSectionRef('content', el)}
+          data-section-id="content"
+          className="bg-gradient-to-br from-[#232120] to-[#070606] border border-[#ffdd1f]/30 rounded-3xl overflow-hidden"
+        >
+          <button
+            type="button"
+            onClick={() => setVisibleSections(prev => {
+              const next = new Set(prev);
+              if (next.has('content')) next.delete('content');
+              else next.add('content');
+              return next;
+            })}
+            className="w-full p-6 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-[#ffdd1f]/20 flex items-center justify-center">
+                <svg className="w-6 h-6 text-[#ffdd1f]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              </div>
+              <div>
+                <h3 className="font-bold text-xl" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Content Strategy</h3>
+                <p className="text-sm text-[#75716f]">From generic content to signal-triggered authority</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className={`text-lg font-bold ${gradeColors[grade]}`}>{grade}</span>
+              <svg className={`w-5 h-5 text-[#75716f] transition-transform duration-300 ${visibleSections.has('content') ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </button>
+
+          <div className={`transition-all duration-500 ease-out ${visibleSections.has('content') ? 'max-h-[3000px] opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+            <div className="px-6 pb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Current State */}
+                <div className="bg-[#3f3b3a]/20 border border-[#3f3b3a] rounded-2xl p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-6 h-6 rounded-full bg-[#ef4444]/20 flex items-center justify-center">
+                      <span className="text-[#ef4444] text-sm">✗</span>
+                    </div>
+                    <span className="text-[#aaa7a6] font-medium uppercase text-xs tracking-wider">Current State</span>
+                  </div>
+                  <ul className="space-y-3 text-sm text-[#aaa7a6]">
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#ef4444] mt-1">•</span>
+                      <span>Content calendar based on internal schedules</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#ef4444] mt-1">•</span>
+                      <span>Generic topics that don&apos;t resonate with ICP pain</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#ef4444] mt-1">•</span>
+                      <span>Disconnected from buying signals and VOC insights</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Future State */}
+                <div className="bg-[#ffdd1f]/10 border border-[#ffdd1f]/30 rounded-2xl p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-6 h-6 rounded-full bg-[#22c55e]/20 flex items-center justify-center">
+                      <span className="text-[#22c55e] text-sm">✓</span>
+                    </div>
+                    <span className="text-[#ffdd1f] font-medium uppercase text-xs tracking-wider">Future State</span>
+                  </div>
+                  <ul className="space-y-3 text-sm text-[#dededd]">
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#22c55e] mt-1">•</span>
+                      <span>Signal-triggered content addressing pain at the moment</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#22c55e] mt-1">•</span>
+                      <span>VOC-driven topics that build trust with ICPs</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#22c55e] mt-1">•</span>
+                      <span>Pillar content that positions you as the authority</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Pillar Content Concept */}
+              {pillarContent && (
+                <div className="mt-6 border-t border-[#3f3b3a] pt-6">
+                  <h4 className="font-semibold text-[#ffdd1f] mb-4">Your Pillar Content Concept</h4>
+                  <div className="bg-gradient-to-r from-[#ffdd1f]/10 to-transparent border border-[#ffdd1f]/20 rounded-2xl p-6">
+                    <h5 className="font-bold text-lg text-white mb-3">{pillarContent.title}</h5>
+                    <p className="text-[#dededd] mb-4">{pillarContent.concept}</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div className="bg-[#070606]/50 rounded-xl p-4">
+                        <div className="text-[#75716f] mb-1 font-medium">Data Sources</div>
+                        <div className="text-[#aaa7a6]">{pillarContent.dataSources}</div>
+                      </div>
+                      <div className="bg-[#070606]/50 rounded-xl p-4">
+                        <div className="text-[#75716f] mb-1 font-medium">Cadence</div>
+                        <div className="text-[#aaa7a6]">{pillarContent.cadence}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Current Grade */}
+              <div className="mt-6 border-t border-[#3f3b3a] pt-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={`text-3xl font-bold ${gradeColors[grade]}`}>{grade}</div>
+                  <div>
+                    <div className="font-medium text-white">Current Content Grade</div>
+                    <div className="text-sm text-[#75716f]">Based on ICP alignment and presence</div>
+                  </div>
+                </div>
+                <p className="text-[#aaa7a6] text-sm leading-relaxed">
+                  {cleanResponse(reportData.content).split('\n').slice(0, 3).join(' ').substring(0, 200)}...
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ==================== SECTION 4: OUTREACH ==================== */}
+        <div
+          ref={(el) => registerSectionRef('outreach', el)}
+          data-section-id="outreach"
+          className="bg-gradient-to-br from-[#232120] to-[#070606] border border-[#22c55e]/30 rounded-3xl overflow-hidden"
+        >
+          <button
+            type="button"
+            onClick={() => setVisibleSections(prev => {
+              const next = new Set(prev);
+              if (next.has('outreach')) next.delete('outreach');
+              else next.add('outreach');
+              return next;
+            })}
+            className="w-full p-6 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-[#22c55e]/20 flex items-center justify-center">
+                <svg className="w-6 h-6 text-[#22c55e]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+              </div>
+              <div>
+                <h3 className="font-bold text-xl" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Outreach & Pipeline</h3>
+                <p className="text-sm text-[#75716f]">From cold outreach to warm signal-driven connections</p>
+              </div>
+            </div>
+            <svg className={`w-5 h-5 text-[#75716f] transition-transform duration-300 ${visibleSections.has('outreach') ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          <div className={`transition-all duration-500 ease-out ${visibleSections.has('outreach') ? 'max-h-[3000px] opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+            <div className="px-6 pb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Current State */}
+                <div className="bg-[#3f3b3a]/20 border border-[#3f3b3a] rounded-2xl p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-6 h-6 rounded-full bg-[#ef4444]/20 flex items-center justify-center">
+                      <span className="text-[#ef4444] text-sm">✗</span>
+                    </div>
+                    <span className="text-[#aaa7a6] font-medium uppercase text-xs tracking-wider">Current State</span>
+                  </div>
+                  <ul className="space-y-3 text-sm text-[#aaa7a6]">
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#ef4444] mt-1">•</span>
+                      <span>High-volume cold outreach with low response rates</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#ef4444] mt-1">•</span>
+                      <span>Generic templates that don&apos;t reference context</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#ef4444] mt-1">•</span>
+                      <span>Disconnected from content and trust-building efforts</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Future State */}
+                <div className="bg-[#22c55e]/10 border border-[#22c55e]/30 rounded-2xl p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-6 h-6 rounded-full bg-[#22c55e]/20 flex items-center justify-center">
+                      <span className="text-[#22c55e] text-sm">✓</span>
+                    </div>
+                    <span className="text-[#22c55e] font-medium uppercase text-xs tracking-wider">Future State</span>
+                  </div>
+                  <ul className="space-y-3 text-sm text-[#dededd]">
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#22c55e] mt-1">•</span>
+                      <span>Signal-triggered outreach to warm, pre-engaged contacts</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#22c55e] mt-1">•</span>
+                      <span>Context-rich messaging referencing their activity</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#22c55e] mt-1">•</span>
+                      <span>Trust already established through content engagement</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Podcast Guests */}
+              {podcastGuests.length > 0 && (
+                <div className="mt-6 border-t border-[#3f3b3a] pt-6">
+                  <h4 className="font-semibold text-[#22c55e] mb-4">Podcast Guest Suggestions</h4>
+                  <p className="text-sm text-[#aaa7a6] mb-4">ICP-matching guests who expand your reach to ideal buyers</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {podcastGuests.map((guest, i) => (
+                      <div key={i} className="bg-gradient-to-r from-[#22c55e]/10 to-transparent border border-[#22c55e]/20 rounded-2xl p-5">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: 'rgba(34, 197, 94, 0.35)', color: '#22c55e' }}>
+                            {i + 1}
+                          </div>
+                          <div>
+                            <h5 className="font-semibold text-white">{guest.name}</h5>
+                            <p className="text-[#75716f] text-sm">{guest.company}</p>
+                          </div>
+                        </div>
+                        <div className="space-y-2 text-sm">
+                          <div>
+                            <span className="text-[#9a5d9d] font-medium">ICP Match:</span>
+                            <span className="text-[#aaa7a6] ml-2">{guest.icpMatch}</span>
+                          </div>
+                          <div>
+                            <span className="text-[#ff8f50] font-medium">Topic:</span>
+                            <span className="text-[#dededd] ml-2">{guest.topic}</span>
+                          </div>
+                          {guest.whyInvite && (
+                            <div className="mt-2 pt-2 border-t border-[#3f3b3a]">
+                              <span className="text-[#75716f] italic text-xs">{guest.whyInvite}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Program Elements */}
+              <div className="mt-6 border-t border-[#3f3b3a] pt-6">
+                <h4 className="font-semibold text-white mb-4">Your Signal-Driven GTM Program</h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
+                    <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-[#5b2e5e]/20 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-[#9a5d9d]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                    </div>
+                    <h5 className="font-semibold text-white text-sm mb-1">VOC Program</h5>
+                    <p className="text-xs text-[#75716f]">25 ICP conversations</p>
+                  </div>
+                  <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
+                    <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-[#ff6f20]/20 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-[#ff6f20]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                    </div>
+                    <h5 className="font-semibold text-white text-sm mb-1">Social Listening</h5>
+                    <p className="text-xs text-[#75716f]">50 connections/month</p>
+                  </div>
+                  <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
+                    <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-[#ffdd1f]/20 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-[#ffdd1f]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+                    </div>
+                    <h5 className="font-semibold text-white text-sm mb-1">ICP Podcasts</h5>
+                    <p className="text-xs text-[#75716f]">4 guest episodes</p>
+                  </div>
+                  <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
+                    <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-[#22c55e]/20 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-[#22c55e]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    </div>
+                    <h5 className="font-semibold text-white text-sm mb-1">Pillar Content</h5>
+                    <p className="text-xs text-[#75716f]">Signal-based reports</p>
+                  </div>
+                  <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
+                    <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-[#ef4444]/20 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-[#ef4444]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                    </div>
+                    <h5 className="font-semibold text-white text-sm mb-1">Signal Sequences</h5>
+                    <p className="text-xs text-[#75716f]">Trigger-based outreach</p>
+                  </div>
+                  <div className="bg-gradient-to-r from-[#ff6f20]/10 to-[#5b2e5e]/10 border border-[#ff6f20]/30 rounded-xl p-4 text-center">
+                    <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-gradient-to-r from-[#ff6f20]/30 to-[#5b2e5e]/30 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    </div>
+                    <h5 className="font-semibold text-[#ff8f50] text-sm mb-1">HubSpot Enablement</h5>
+                    <p className="text-xs text-[#75716f]">Meeting prep & reporting</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Competitive Snapshot - Collapsible */}
+        {competitors.length > 0 && (
+          <div className="bg-gradient-to-br from-[#232120] to-[#070606] border border-[#3f3b3a] rounded-3xl overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setCompetitiveExpanded(!competitiveExpanded)}
+              className="w-full p-6 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-[#3f3b3a]/50 flex items-center justify-center text-sm">🏆</div>
+                <div>
+                  <h3 className="font-bold text-lg" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Competitive Landscape</h3>
+                  <p className="text-xs text-[#75716f]">{competitors.length} competitors analyzed</p>
+                </div>
+              </div>
+              <svg className={`w-5 h-5 text-[#75716f] transition-transform ${competitiveExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {competitiveExpanded && (
+              <div className="px-6 pb-6 space-y-3">
+                {competitors.map((c, i) => (
+                  <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-4">
+                    <div className="font-semibold text-white mb-2">{c.name}</div>
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      <div><span className="text-[#22c55e]">+</span> <span className="text-[#aaa7a6]">{c.strength || "—"}</span></div>
+                      <div><span className="text-[#ef4444]">−</span> <span className="text-[#aaa7a6]">{c.weakness || "—"}</span></div>
+                      <div><span className="text-[#ff6f20]">→</span> <span className="text-[#aaa7a6]">{c.youWin || "—"}</span></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* CTA */}
         <div className="relative overflow-hidden bg-gradient-to-r from-[#ff6f20] to-[#e56318] rounded-3xl p-10 text-center">
