@@ -2,6 +2,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { pdf, Document, Page, Text, View, Image, StyleSheet, Link } from '@react-pdf/renderer';
+import { SiApollographql } from 'react-icons/si';
+import { HiOutlineSparkles, HiOutlineUserGroup, HiOutlineFire, HiOutlineHome, HiOutlineSearch, HiOutlineDatabase } from 'react-icons/hi';
+import { BiTargetLock } from 'react-icons/bi';
 
 const STORAGE_KEY = 'gtm-diagnostic-session';
 
@@ -215,13 +218,34 @@ const gtmInsights = [
 ];
 
 const signalVendors = [
-  { id: "clay", name: "Clay", logo: "https://cdn.brandfetch.io/idD_mpLkdv/theme/dark/symbol.svg?c=1bfwsmEH20zzEfSNTed", fallback: "🔶" },
-  { id: "apollo", name: "Apollo", logo: "https://cdn.brandfetch.io/idEdyy-bx6/theme/dark/symbol.svg?c=1bfwsmEH20zzEfSNTed", fallback: "🚀" },
-  { id: "zoominfo", name: "ZoomInfo", logo: "https://cdn.brandfetch.io/idJCiN_dWz/theme/dark/symbol.svg?c=1bfwsmEH20zzEfSNTed", fallback: "🔍" },
-  { id: "usergems", name: "UserGems", logo: "https://cdn.brandfetch.io/id3Y03ggHo/theme/dark/symbol.svg?c=1bfwsmEH20zzEfSNTed", fallback: "💎" },
-  { id: "warmly", name: "Warmly", logo: "https://cdn.brandfetch.io/idPSTn-TkV/theme/dark/symbol.svg?c=1bfwsmEH20zzEfSNTed", fallback: "🔥" },
-  { id: "commonroom", name: "Common Room", logo: "https://cdn.brandfetch.io/id2S3t4xBl/theme/dark/symbol.svg?c=1bfwsmEH20zzEfSNTed", fallback: "🏠" }
+  { id: "clay", name: "Clay", color: "#FF6B35" },
+  { id: "apollo", name: "Apollo", color: "#6366F1" },
+  { id: "zoominfo", name: "ZoomInfo", color: "#00A4BD" },
+  { id: "usergems", name: "UserGems", color: "#8B5CF6" },
+  { id: "warmly", name: "Warmly", color: "#F97316" },
+  { id: "commonroom", name: "Common Room", color: "#10B981" }
 ];
+
+// Vendor icon component with brand-appropriate icons
+const VendorIcon = ({ id, className = "w-6 h-6", style }: { id: string; className?: string; style?: React.CSSProperties }) => {
+  const iconProps = { className, style };
+  switch (id) {
+    case "clay":
+      return <BiTargetLock {...iconProps} />;
+    case "apollo":
+      return <SiApollographql {...iconProps} />;
+    case "zoominfo":
+      return <HiOutlineSearch {...iconProps} />;
+    case "usergems":
+      return <HiOutlineSparkles {...iconProps} />;
+    case "warmly":
+      return <HiOutlineFire {...iconProps} />;
+    case "commonroom":
+      return <HiOutlineUserGroup {...iconProps} />;
+    default:
+      return <HiOutlineDatabase {...iconProps} />;
+  }
+};
 
 const signalTypes = [
   { id: "job_changes", label: "Job Changes", desc: "Contact role changes" },
@@ -621,7 +645,15 @@ export default function Home() {
       .replace(/\*\*([^*]+)\*\*/g, "$1")
       .replace(/^\s*[-*]\s+/gm, "")
       .trim();
-    cleaned = cleaned.replace(/([a-z,])\s*\n+(?![A-Z]{2,})/g, "$1 ");
+
+    // Join fragmented lines that are clearly part of the same sentence/paragraph
+    // Match: ends with lowercase, comma, quote, or period followed by lowercase next line
+    cleaned = cleaned.replace(/([a-z,""'.])\s*\n+(?![A-Z]{2,}[A-Z\s]*$)/gm, "$1 ");
+    // Join lines that start with lowercase, punctuation, or continuation words
+    cleaned = cleaned.replace(/\n+(?=[a-z,;:""'\-–—])/gm, " ");
+    // Join lines starting with common continuation patterns
+    cleaned = cleaned.replace(/\n+(with |and |or |but |which |that |for |to |in |on |at |the |a |an |is |are |was |were |has |have |had |appears |indicating |shows |demonstrates )/gim, " $1");
+
     cleaned = cleaned.replace(/\n{3,}/g, "\n\n");
     return cleaned;
   };
@@ -1846,7 +1878,60 @@ RULES:
               </div>
             )}
             {!hasCompetitorTable && !hasSignalTable && !isPersonaSection && (
-              sec.content.map((line, j) => <p key={j} className="mb-3 last:mb-0">{line}</p>)
+              (() => {
+                // Join content into proper paragraphs for clean prose rendering
+                const joinedContent = sec.content.join(" ");
+
+                // Check for "NOTABLY MISSING:" pattern - render as formatted callout
+                if (joinedContent.includes("NOTABLY MISSING:") || joinedContent.includes("NOTABLY MISSING -")) {
+                  const parts = joinedContent.split(/NOTABLY MISSING[:\-]\s*/i);
+                  const mainText = parts[0]?.trim();
+                  const missingItems = parts[1]?.split(/,\s*(?:and\s+)?|,\s*(?=no\s)/i).map(s => s.trim()).filter(Boolean);
+                  return (
+                    <>
+                      {mainText && <p className="mb-4 leading-relaxed">{mainText}</p>}
+                      {missingItems && missingItems.length > 0 && (
+                        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mt-3">
+                          <div className="text-xs font-semibold text-red-400 uppercase tracking-wider mb-2">Notably Missing</div>
+                          <ul className="space-y-1">
+                            {missingItems.map((item, idx) => (
+                              <li key={idx} className="text-white/80 text-sm flex items-start gap-2">
+                                <span className="text-red-400 mt-0.5">×</span>
+                                <span>{item.replace(/^no\s+/i, "No ")}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </>
+                  );
+                }
+
+                // Split by double newlines or sentence boundaries for natural paragraph breaks
+                const paragraphs = joinedContent
+                  .split(/\.\s+(?=[A-Z])/)
+                  .map(p => p.trim())
+                  .filter(p => p.length > 0)
+                  .reduce((acc: string[], sentence) => {
+                    // Group sentences into paragraphs (roughly 2-3 sentences each)
+                    if (acc.length === 0) {
+                      acc.push(sentence + (sentence.endsWith(".") ? "" : "."));
+                    } else {
+                      const lastPara = acc[acc.length - 1];
+                      const sentenceCount = (lastPara.match(/\./g) || []).length;
+                      if (sentenceCount < 3 && lastPara.length < 400) {
+                        acc[acc.length - 1] = lastPara + " " + sentence + (sentence.endsWith(".") ? "" : ".");
+                      } else {
+                        acc.push(sentence + (sentence.endsWith(".") ? "" : "."));
+                      }
+                    }
+                    return acc;
+                  }, []);
+
+                return paragraphs.map((para, j) => (
+                  <p key={j} className="mb-4 last:mb-0 leading-relaxed">{para}</p>
+                ));
+              })()
             )}
           </div>
         </div>
@@ -2891,15 +2976,14 @@ Don't fake positives. Instead, frame paragraph 1 around potential: "The product 
       <div className="grid grid-cols-3 gap-3 mb-8">
         {signalVendors.map((v) => (
           <div key={v.id} onClick={() => setSelectedVendors(prev => prev.includes(v.id) ? prev.filter(x => x !== v.id) : [...prev, v.id])} className={`p-4 rounded-xl border-2 cursor-pointer text-center transition-all ${selectedVendors.includes(v.id) ? "border-[#ff6f20] bg-[#ff6f20]/10" : "border-white/15 bg-white/5 hover:border-[#ff6f20]/40"}`}>
-            <div className="w-11 h-11 rounded-lg bg-white/10 mx-auto mb-2 flex items-center justify-center overflow-hidden">
-              <img src={v.logo} alt={v.name} className="w-8 h-8 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden'); }} />
-              <span className="hidden text-2xl">{v.fallback}</span>
+            <div className="w-11 h-11 rounded-lg mx-auto mb-2 flex items-center justify-center" style={{ backgroundColor: `${v.color}20` }}>
+              <VendorIcon id={v.id} className="w-6 h-6" style={{ color: v.color }} />
             </div>
             <div className="text-xs font-semibold">{v.name}</div>
           </div>
         ))}
         <div onClick={() => setSelectedVendors(prev => prev.includes("none") ? prev.filter(x => x !== "none") : [...prev, "none"])} className={`p-4 rounded-xl border-2 cursor-pointer text-center transition-all ${selectedVendors.includes("none") ? "border-[#ff6f20] bg-[#ff6f20]/10" : "border-white/15 bg-white/5 hover:border-[#ff6f20]/40"}`}>
-          <div className="text-3xl mb-2">🚫</div>
+          <div className="w-11 h-11 rounded-lg bg-white/10 mx-auto mb-2 flex items-center justify-center text-2xl">🚫</div>
           <div className="text-xs font-semibold">None</div>
         </div>
       </div>
@@ -2958,9 +3042,8 @@ Don't fake positives. Instead, frame paragraph 1 around potential: "The product 
               onClick={() => setSelectedVendors(prev => prev.includes(v.id) ? prev.filter(x => x !== v.id) : [...prev, v.id])}
               className={`p-4 rounded-xl border-2 cursor-pointer text-center transition-all ${selectedVendors.includes(v.id) ? "border-[#ff6f20] bg-[#ff6f20]/10" : "border-[#3f3b3a] bg-[#070606]/50 hover:border-[#ff6f20]/40"}`}
             >
-              <div className="w-10 h-10 rounded-lg bg-white/10 mx-auto mb-2 flex items-center justify-center overflow-hidden">
-                <img src={v.logo} alt={v.name} className="w-7 h-7 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden'); }} />
-                <span className="hidden text-xl">{v.fallback}</span>
+              <div className="w-10 h-10 rounded-lg mx-auto mb-2 flex items-center justify-center" style={{ backgroundColor: `${v.color}20` }}>
+                <VendorIcon id={v.id} className="w-5 h-5" style={{ color: v.color }} />
               </div>
               <div className="text-xs font-semibold">{v.name}</div>
             </div>
@@ -2969,7 +3052,7 @@ Don't fake positives. Instead, frame paragraph 1 around potential: "The product 
             onClick={() => setSelectedVendors(prev => prev.includes("none") ? prev.filter(x => x !== "none") : [...prev, "none"])}
             className={`p-4 rounded-xl border-2 cursor-pointer text-center transition-all ${selectedVendors.includes("none") ? "border-[#ff6f20] bg-[#ff6f20]/10" : "border-[#3f3b3a] bg-[#070606]/50 hover:border-[#ff6f20]/40"}`}
           >
-            <div className="text-2xl mb-2">🚫</div>
+            <div className="w-10 h-10 rounded-lg bg-white/10 mx-auto mb-2 flex items-center justify-center text-xl">🚫</div>
             <div className="text-xs font-semibold">None</div>
           </div>
         </div>
@@ -3461,17 +3544,24 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
               {/* Your Personas */}
               <div className="mt-6 border-t border-[#3f3b3a] pt-6">
                 <h4 className="font-semibold text-[#9a5d9d] mb-4">Your Target Personas</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-4">
                   {personas.map((p, i) => (
-                    <div key={i} className="bg-[#5b2e5e]/10 border border-[#5b2e5e]/20 rounded-xl p-4">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: 'rgba(91, 46, 94, 0.35)', color: '#9a5d9d' }}>
+                    <div key={i} className="bg-[#5b2e5e]/10 border border-[#5b2e5e]/20 rounded-xl p-5">
+                      <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-bold" style={{ backgroundColor: 'rgba(91, 46, 94, 0.35)', color: '#9a5d9d' }}>
                           {i + 1}
                         </div>
-                        <div className="font-semibold text-white text-sm">{p.title}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-white mb-1">{p.title}</div>
+                          {p.goal && <p className="text-sm text-[#aaa7a6] mb-2">{p.goal}</p>}
+                          {p.jtbd && (
+                            <div className="bg-black/20 rounded-lg p-3 mt-2">
+                              <div className="text-xs text-[#9a5d9d] uppercase tracking-wide mb-1">Job to Be Done</div>
+                              <p className="text-sm text-[#c9c6c5] italic leading-relaxed">&ldquo;{p.jtbd}&rdquo;</p>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      {p.goal && <p className="text-xs text-[#aaa7a6] ml-11">{p.goal}</p>}
-                      {p.jtbd && <p className="text-xs text-[#75716f] italic ml-11 mt-1">&ldquo;{p.jtbd}&rdquo;</p>}
                     </div>
                   ))}
                 </div>
