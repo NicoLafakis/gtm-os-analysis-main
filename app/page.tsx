@@ -3684,16 +3684,22 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
                         {signal.whyAlpha && (
                           <p className="text-[#ff8f50] text-sm italic mb-3">{signal.whyAlpha}</p>
                         )}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                          <div>
-                            <span className="text-[#75716f]">Source:</span>
-                            <span className="text-[#dededd] ml-2">{signal.source}</span>
+                        {(signal.source || signal.detection) && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                            {signal.source && (
+                              <div>
+                                <span className="text-[#75716f]">Source:</span>
+                                <span className="text-[#dededd] ml-2">{signal.source}</span>
+                              </div>
+                            )}
+                            {signal.detection && (
+                              <div>
+                                <span className="text-[#75716f]">Detection:</span>
+                                <span className="text-[#dededd] ml-2">{signal.detection}</span>
+                              </div>
+                            )}
                           </div>
-                          <div>
-                            <span className="text-[#75716f]">Detection:</span>
-                            <span className="text-[#dededd] ml-2">{signal.detection}</span>
-                          </div>
-                        </div>
+                        )}
                         {signal.motion && (
                           <div className="mt-3 pt-3 border-t border-[#3f3b3a]">
                             <span className="text-[#75716f] text-sm">Recommended Motion: </span>
