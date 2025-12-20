@@ -5,6 +5,17 @@ import { pdf, Document, Page, Text, View, Image, StyleSheet, Link } from '@react
 
 const STORAGE_KEY = 'gtm-diagnostic-session';
 
+// Helper to strip markdown formatting from AI-generated text
+const stripMarkdown = (text: string): string => {
+  if (!text) return '';
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '$1')  // Remove **bold**
+    .replace(/\*(.*?)\*/g, '$1')       // Remove *italic*
+    .replace(/`(.*?)`/g, '$1')         // Remove `code`
+    .replace(/#{1,6}\s?/g, '')         // Remove # headers
+    .trim();
+};
+
 // PDF Styles
 const pdfStyles = StyleSheet.create({
   page: {
@@ -204,12 +215,12 @@ const gtmInsights = [
 ];
 
 const signalVendors = [
-  { id: "clay", name: "Clay", logo: "https://logo.clearbit.com/clay.com" },
-  { id: "apollo", name: "Apollo", logo: "https://logo.clearbit.com/apollo.io" },
-  { id: "zoominfo", name: "ZoomInfo", logo: "https://logo.clearbit.com/zoominfo.com" },
-  { id: "usergems", name: "UserGems", logo: "https://logo.clearbit.com/usergems.com" },
-  { id: "warmly", name: "Warmly", logo: "https://logo.clearbit.com/warmly.ai" },
-  { id: "commonroom", name: "Common Room", logo: "https://logo.clearbit.com/commonroom.io" }
+  { id: "clay", name: "Clay", logo: "https://cdn.brandfetch.io/idD_mpLkdv/theme/dark/symbol.svg?c=1bfwsmEH20zzEfSNTed", fallback: "🔶" },
+  { id: "apollo", name: "Apollo", logo: "https://cdn.brandfetch.io/idEdyy-bx6/theme/dark/symbol.svg?c=1bfwsmEH20zzEfSNTed", fallback: "🚀" },
+  { id: "zoominfo", name: "ZoomInfo", logo: "https://cdn.brandfetch.io/idJCiN_dWz/theme/dark/symbol.svg?c=1bfwsmEH20zzEfSNTed", fallback: "🔍" },
+  { id: "usergems", name: "UserGems", logo: "https://cdn.brandfetch.io/id3Y03ggHo/theme/dark/symbol.svg?c=1bfwsmEH20zzEfSNTed", fallback: "💎" },
+  { id: "warmly", name: "Warmly", logo: "https://cdn.brandfetch.io/idPSTn-TkV/theme/dark/symbol.svg?c=1bfwsmEH20zzEfSNTed", fallback: "🔥" },
+  { id: "commonroom", name: "Common Room", logo: "https://cdn.brandfetch.io/id2S3t4xBl/theme/dark/symbol.svg?c=1bfwsmEH20zzEfSNTed", fallback: "🏠" }
 ];
 
 const signalTypes = [
@@ -220,8 +231,9 @@ const signalTypes = [
   { id: "website_visitors", label: "Website Visitors", desc: "De-anonymized" }
 ];
 
-// New flow: intro → select-product → icp-selection → research phases → signals-alignment → generating → results
-const steps = ["intro", "select-product", "icp-selection", "research-company", "research-competitive", "research-content", "signals-alignment", "generating", "results"];
+// New flow: intro → contact-info → select-product → icp-selection → research phases → signals-alignment → generating → results
+// Note: competitive analysis runs in background during generation, not as a visible step
+const steps = ["intro", "contact-info", "select-product", "icp-selection", "research-company", "research-content", "signals-alignment", "generating", "results"];
 
 // Program elements structure for value prop display
 const programElements = {
@@ -239,6 +251,8 @@ export default function Home() {
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [domain, setDomain] = useState("");
   const [email, setEmail] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [role, setRole] = useState("");
   const [companySize, setCompanySize] = useState("");
@@ -287,6 +301,7 @@ export default function Home() {
   // UI state
   const [isHydrated, setIsHydrated] = useState(false);
   const [errorToast, setErrorToast] = useState<string | null>(null);
+  const [competitiveExpanded, setCompetitiveExpanded] = useState(false);
   const [loadingStage, setLoadingStage] = useState(0);
   const [currentInsight, setCurrentInsight] = useState(0);
 
@@ -300,6 +315,8 @@ export default function Home() {
         if (data.websiteUrl) setWebsiteUrl(data.websiteUrl);
         if (data.domain) setDomain(data.domain);
         if (data.email) setEmail(data.email);
+        if (data.firstName) setFirstName(data.firstName);
+        if (data.lastName) setLastName(data.lastName);
         if (data.companyName) setCompanyName(data.companyName);
         if (data.role) setRole(data.role);
         if (data.companySize) setCompanySize(data.companySize);
@@ -334,6 +351,8 @@ export default function Home() {
         websiteUrl,
         domain,
         email,
+        firstName,
+        lastName,
         companyName,
         role,
         companySize,
@@ -357,7 +376,7 @@ export default function Home() {
     } catch (e) {
       console.error('Failed to save session:', e);
     }
-  }, [isHydrated, currentStep, websiteUrl, domain, email, companyName, role, companySize, crm, selectedVendors, selectedSignals, alignment, research, reportData, contactId, products, selectedProduct, discoveredICPs, selectedICPs, backgroundData, alphaSignals, pillarContent, podcastGuests]);
+  }, [isHydrated, currentStep, websiteUrl, domain, email, firstName, lastName, companyName, role, companySize, crm, selectedVendors, selectedSignals, alignment, research, reportData, contactId, products, selectedProduct, discoveredICPs, selectedICPs, backgroundData, alphaSignals, pillarContent, podcastGuests]);
 
   // Rotate loading stages and insights during wait
   useEffect(() => {
@@ -852,6 +871,10 @@ RULES:
                 </div>
                 {sec.content.map((line, j) => {
                   if (!line.includes("|")) return null;
+                  // Skip header rows that the AI might include
+                  const lowerLine = line.toLowerCase();
+                  if (lowerLine.includes("competitor") && lowerLine.includes("strength") && lowerLine.includes("weakness")) return null;
+                  if (lowerLine.includes("their strength") || lowerLine.includes("where you win")) return null;
                   const parts = line.split("|").map(p => p.trim()).filter(p => p.length > 0);
                   if (parts.length < 2) return null;
                   let competitorName = parts[0];
@@ -974,18 +997,26 @@ RULES:
   const nextStep = () => { if (currentStep < steps.length - 1) setCurrentStep(currentStep + 1); };
   const prevStep = () => { if (currentStep > 0) setCurrentStep(currentStep - 1); };
 
-  const startDiagnostic = async () => {
+  // Step 1: Just validate URL and move to contact form
+  const startDiagnostic = () => {
     if (!websiteUrl) { showError("Please enter a website URL"); return; }
     const d = websiteUrl.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
     setDomain(d);
+    nextStep(); // Goes to contact-info
+  };
+
+  // Step 2: Submit contact info and start actual research
+  const submitContactAndStartResearch = async () => {
+    if (!email) { showError("Please enter your email"); return; }
+
     setProductsLoading(true);
     setLoadingStage(0);
-    nextStep();
+    nextStep(); // Goes to select-product (loading state)
 
     // Fire ALL data fetching in parallel for speed
     const [productsResult, websiteResult, linkedInResult] = await Promise.allSettled([
       // 1. Fetch products/offerings via Claude
-      callClaude(`Search the web for "${d}" and identify their products, solutions, or service offerings.
+      callClaude(`Search the web for "${domain}" and identify their products, solutions, or service offerings.
 
 Return ONLY a simple numbered list of their distinct products/offerings. For example:
 1. Product Name A
@@ -1001,10 +1032,10 @@ RULES:
 - No preamble, just the numbered list`),
 
       // 2. Fetch website content via Firecrawl
-      fetchWebsiteContent(d),
+      fetchWebsiteContent(domain),
 
       // 3. Generate Anysite query for LinkedIn (always works, even without MCP)
-      fetchLinkedInData("generateQuery", { domain: d })
+      fetchLinkedInData("generateQuery", { domain })
     ]);
 
     // Process products result
@@ -1037,9 +1068,9 @@ RULES:
           .filter((line: string) => line.length > 2 && line.length < 100 && !line.toLowerCase().includes('product') && !line.toLowerCase().includes('here'));
       }
 
-      setProducts(parsed.length > 0 ? parsed.slice(0, 8) : [d]);
+      setProducts(parsed.length > 0 ? parsed.slice(0, 8) : [domain]);
     } else {
-      setProducts([d]);
+      setProducts([domain]);
     }
 
     // Store background data for later use
@@ -1154,7 +1185,14 @@ RULES:
       if (!icpData.initial && !icpData.loading && selectedICPs.length > 0) runResearchPhase("icp");
     }
 
-    if (step === "generating" && !reportData) generateReport();
+    if (step === "generating" && !reportData) {
+      // Run competitive analysis in background (not a visible step)
+      const competitiveData = research.competitive;
+      if (!competitiveData.initial && !competitiveData.loading) {
+        runResearchPhase("competitive");
+      }
+      generateReport();
+    }
   }, [currentStep, domain, selectedProduct, discoveredICPs.length, selectedICPs.length, discoverICPs]);
 
   const generateReport = async () => {
@@ -1359,6 +1397,86 @@ NO PREAMBLE. Start with paragraph 1.`),
       </div>
     </div>
   );
+
+  const renderContactInfo = () => (
+    <div className="bg-gradient-to-br from-[#232120] to-[#070606] border border-[#3f3b3a] rounded-3xl p-11 relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-64 h-64 bg-[#5b2e5e]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+      <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#ff6f20]/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+
+      <div className="relative">
+        <div className="inline-block px-3 py-1 bg-[#5b2e5e]/20 border border-[#5b2e5e]/30 rounded-full text-[#9a5d9d] text-xs font-semibold mb-4">
+          QUICK INFO
+        </div>
+        <h2 className="font-bold text-2xl mb-2" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>
+          Where should we send your report?
+        </h2>
+        <p className="text-[#aaa7a6] mb-8">We&apos;ll start analyzing <span className="text-white font-medium">{domain}</span> while you fill this out.</p>
+
+        <div className="grid gap-4 max-w-md mx-auto">
+          <div className="grid grid-cols-2 gap-4">
+            <input
+              type="text"
+              placeholder="First name"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              className="bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-white outline-none focus:border-[#ff6f20] transition-colors"
+            />
+            <input
+              type="text"
+              placeholder="Last name"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              className="bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-white outline-none focus:border-[#ff6f20] transition-colors"
+            />
+          </div>
+          <input
+            type="email"
+            placeholder="Work email *"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && email && submitContactAndStartResearch()}
+            className="bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-white outline-none focus:border-[#ff6f20] transition-colors"
+          />
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            aria-label="Your role"
+            className="bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-white outline-none focus:border-[#ff6f20] transition-colors appearance-none cursor-pointer"
+          >
+            <option value="" className="bg-[#232120]">Your role (optional)</option>
+            <option value="Founder/CEO" className="bg-[#232120]">Founder/CEO</option>
+            <option value="Marketing" className="bg-[#232120]">Marketing</option>
+            <option value="Sales" className="bg-[#232120]">Sales</option>
+            <option value="RevOps" className="bg-[#232120]">RevOps</option>
+            <option value="Other" className="bg-[#232120]">Other</option>
+          </select>
+        </div>
+
+        <div className="mt-8 flex gap-3 justify-center">
+          <button
+            onClick={prevStep}
+            className="px-6 py-3 text-white/60 hover:text-white transition-colors"
+          >
+            ← Back
+          </button>
+          <button
+            onClick={submitContactAndStartResearch}
+            disabled={!email}
+            className={`px-8 py-3 rounded-xl font-semibold transition-all ${
+              email
+                ? "bg-gradient-to-r from-[#ff6f20] to-[#e56318] text-white hover:shadow-lg hover:shadow-[#ff6f20]/30"
+                : "bg-white/10 text-white/40 cursor-not-allowed"
+            }`}
+          >
+            Analyze {domain} →
+          </button>
+        </div>
+
+        <p className="mt-6 text-xs text-[#75716f] text-center">Your info stays private. We just need an email to send your personalized report.</p>
+      </div>
+    </div>
+  );
+
   const renderSelectProduct = () => {
     if (productsLoading) {
       const stage = loadingStages[loadingStage];
@@ -1482,8 +1600,8 @@ NO PREAMBLE. Start with paragraph 1.`),
                   )}
                 </div>
                 <div>
-                  <div className="font-semibold text-white">{icp.title}</div>
-                  <div className="text-sm text-[#aaa7a6] mt-1">{icp.description}</div>
+                  <div className="font-semibold text-white">{stripMarkdown(icp.title)}</div>
+                  <div className="text-sm text-[#aaa7a6] mt-1">{stripMarkdown(icp.description)}</div>
                 </div>
               </div>
             </div>
@@ -1621,7 +1739,10 @@ Use the same ALL CAPS headers as the original. Write TO them using "you/your". N
       <div className="grid grid-cols-3 gap-3 mb-8">
         {signalVendors.map((v) => (
           <div key={v.id} onClick={() => setSelectedVendors(prev => prev.includes(v.id) ? prev.filter(x => x !== v.id) : [...prev, v.id])} className={`p-4 rounded-xl border-2 cursor-pointer text-center transition-all ${selectedVendors.includes(v.id) ? "border-[#ff6f20] bg-[#ff6f20]/10" : "border-white/15 bg-white/5 hover:border-[#ff6f20]/40"}`}>
-            <img src={v.logo} alt={v.name} className="w-11 h-11 object-contain rounded-lg bg-white p-1 mx-auto mb-2" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+            <div className="w-11 h-11 rounded-lg bg-white/10 mx-auto mb-2 flex items-center justify-center overflow-hidden">
+              <img src={v.logo} alt={v.name} className="w-8 h-8 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden'); }} />
+              <span className="hidden text-2xl">{v.fallback}</span>
+            </div>
             <div className="text-xs font-semibold">{v.name}</div>
           </div>
         ))}
@@ -1685,7 +1806,10 @@ Use the same ALL CAPS headers as the original. Write TO them using "you/your". N
               onClick={() => setSelectedVendors(prev => prev.includes(v.id) ? prev.filter(x => x !== v.id) : [...prev, v.id])}
               className={`p-4 rounded-xl border-2 cursor-pointer text-center transition-all ${selectedVendors.includes(v.id) ? "border-[#ff6f20] bg-[#ff6f20]/10" : "border-[#3f3b3a] bg-[#070606]/50 hover:border-[#ff6f20]/40"}`}
             >
-              <img src={v.logo} alt={v.name} className="w-10 h-10 object-contain rounded-lg bg-white p-1 mx-auto mb-2" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              <div className="w-10 h-10 rounded-lg bg-white/10 mx-auto mb-2 flex items-center justify-center overflow-hidden">
+                <img src={v.logo} alt={v.name} className="w-7 h-7 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden'); }} />
+                <span className="hidden text-xl">{v.fallback}</span>
+              </div>
               <div className="text-xs font-semibold">{v.name}</div>
             </div>
           ))}
@@ -2026,7 +2150,7 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.name} - ${g.company}\n   ICP Match:
     };
 
     const signals = extractSignals();
-    const personas = parsePersonas(cleanResponse(reportData.icp).split("\n")).slice(0, 4);
+    const personas = parsePersonas(cleanResponse(reportData.icp).split("\n")).slice(0, Math.max(selectedICPs.length, 3));
 
     return (
       <div className="space-y-8">
@@ -2074,7 +2198,7 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.name} - ${g.company}\n   ICP Match:
                   <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                 </div>
                 <div className="font-semibold text-sm text-[#9a5d9d]">ICP</div>
-                <div className="text-xs text-[#75716f] mt-1">{personas.length} Personas</div>
+                <div className="text-xs text-[#75716f] mt-1">{selectedICPs.length || personas.length} Personas</div>
               </div>
 
               {/* Arrow */}
@@ -2416,22 +2540,39 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.name} - ${g.company}\n   ICP Match:
             </div>
           </div>
 
-          {/* Competitive Snapshot */}
+          {/* Competitive Snapshot - Collapsible */}
           {competitors.length > 0 && (
-            <div className="bg-gradient-to-br from-[#232120] to-[#070606] border border-[#3f3b3a] rounded-3xl p-6">
-              <h3 className="font-bold text-lg mb-4" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Competitive Landscape</h3>
-              <div className="space-y-3">
-                {competitors.map((c, i) => (
-                  <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-4">
-                    <div className="font-semibold text-white mb-2">{c.name}</div>
-                    <div className="grid grid-cols-3 gap-2 text-xs">
-                      <div><span className="text-[#22c55e]">+</span> <span className="text-[#aaa7a6]">{c.strength || "—"}</span></div>
-                      <div><span className="text-[#ef4444]">−</span> <span className="text-[#aaa7a6]">{c.weakness || "—"}</span></div>
-                      <div><span className="text-[#ff6f20]">→</span> <span className="text-[#aaa7a6]">{c.youWin || "—"}</span></div>
-                    </div>
+            <div className="bg-gradient-to-br from-[#232120] to-[#070606] border border-[#3f3b3a] rounded-3xl overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setCompetitiveExpanded(!competitiveExpanded)}
+                className="w-full p-6 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-[#3f3b3a]/50 flex items-center justify-center text-sm">🏆</div>
+                  <div>
+                    <h3 className="font-bold text-lg" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Competitive Landscape</h3>
+                    <p className="text-xs text-[#75716f]">{competitors.length} competitors analyzed</p>
                   </div>
-                ))}
-              </div>
+                </div>
+                <svg className={`w-5 h-5 text-[#75716f] transition-transform ${competitiveExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {competitiveExpanded && (
+                <div className="px-6 pb-6 space-y-3">
+                  {competitors.map((c, i) => (
+                    <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-4">
+                      <div className="font-semibold text-white mb-2">{c.name}</div>
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        <div><span className="text-[#22c55e]">+</span> <span className="text-[#aaa7a6]">{c.strength || "—"}</span></div>
+                        <div><span className="text-[#ef4444]">−</span> <span className="text-[#aaa7a6]">{c.weakness || "—"}</span></div>
+                        <div><span className="text-[#ff6f20]">→</span> <span className="text-[#aaa7a6]">{c.youWin || "—"}</span></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -2489,10 +2630,10 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.name} - ${g.company}\n   ICP Match:
         </div>
         {renderStepIndicator()}
         {step === "intro" && renderIntro()}
+        {step === "contact-info" && renderContactInfo()}
         {step === "select-product" && renderSelectProduct()}
         {step === "icp-selection" && renderICPSelection()}
         {step === "research-company" && renderResearch("company", "Company Analysis")}
-        {step === "research-competitive" && renderResearch("competitive", "Competitive Landscape")}
         {step === "research-content" && renderResearch("content", "Content Strategy")}
         {step === "signals-alignment" && renderSignalsAlignment()}
         {step === "generating" && renderGenerating()}
