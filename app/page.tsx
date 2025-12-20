@@ -391,7 +391,8 @@ export default function Home() {
   const [currentInsight, setCurrentInsight] = useState(0);
 
   // Scroll-triggered section expansion state
-  const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set());
+  const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set(['targeting'])); // Start with first section expanded
+  const [userHasManuallyToggled, setUserHasManuallyToggled] = useState(false); // Track if user has closed a section
   const sectionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   // Register a section ref for IntersectionObserver
@@ -518,9 +519,10 @@ export default function Home() {
     }
   }, [productsLoading, currentStep]);
 
-  // IntersectionObserver for scroll-triggered section expansion
+  // IntersectionObserver for scroll-triggered section expansion (only if user hasn't manually toggled)
   useEffect(() => {
     if (currentStep !== steps.indexOf("results")) return;
+    if (userHasManuallyToggled) return; // Stop auto-expanding once user manually closes a section
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -533,7 +535,7 @@ export default function Home() {
           }
         });
       },
-      { threshold: 0.15, rootMargin: '-50px 0px' }
+      { threshold: 0.5, rootMargin: '0px' } // 50% visible before auto-expanding
     );
 
     // Observe all registered sections
@@ -542,7 +544,7 @@ export default function Home() {
     });
 
     return () => observer.disconnect();
-  }, [currentStep]);
+  }, [currentStep, userHasManuallyToggled]);
 
   const clearSession = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
@@ -588,6 +590,8 @@ export default function Home() {
     setPodcastGuests([]);
     setLoadingStage(0);
     setCurrentInsight(0);
+    setVisibleSections(new Set(['targeting'])); // Reset to first section expanded
+    setUserHasManuallyToggled(false); // Reset manual toggle state
   }, []);
 
   // API helper: Firecrawl for website content
@@ -2473,12 +2477,15 @@ Don't fake positives. Instead, frame paragraph 1 around potential: "The product 
       const detectionMatch = block.match(/DETECTION(?:\s*PATTERN)?:\s*([^\n]+)/i);
       const motionMatch = block.match(/RECOMMENDED MOTION:\s*([^\n]+)/i);
       const exampleMatch = block.match(/EXAMPLE:\s*([^\n]+)/i);
-      if (nameMatch) {
+      // Only include if it has actual signal data (source AND detection) - filters out AI preamble
+      const hasSource = sourceMatch && sourceMatch[1].trim().length > 0;
+      const hasDetection = detectionMatch && detectionMatch[1].trim().length > 0;
+      if (nameMatch && hasSource && hasDetection) {
         parsedSignals.push({
           name: nameMatch[0].trim(),
           whyAlpha: whyAlphaMatch ? whyAlphaMatch[1].trim() : '',
-          source: sourceMatch ? sourceMatch[1].trim() : '',
-          detection: detectionMatch ? detectionMatch[1].trim() : '',
+          source: sourceMatch[1].trim(),
+          detection: detectionMatch[1].trim(),
           motion: motionMatch ? motionMatch[1].trim() : '',
           example: exampleMatch ? exampleMatch[1].trim() : ''
         });
@@ -3467,12 +3474,15 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
         >
           <button
             type="button"
-            onClick={() => setVisibleSections(prev => {
-              const next = new Set(prev);
-              if (next.has('targeting')) next.delete('targeting');
-              else next.add('targeting');
-              return next;
-            })}
+            onClick={() => {
+              setUserHasManuallyToggled(true); // User has manually interacted, stop auto-expand
+              setVisibleSections(prev => {
+                const next = new Set(prev);
+                if (next.has('targeting')) next.delete('targeting');
+                else next.add('targeting');
+                return next;
+              });
+            }}
             className="w-full p-6 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
           >
             <div className="flex items-center gap-4">
@@ -3578,12 +3588,15 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
         >
           <button
             type="button"
-            onClick={() => setVisibleSections(prev => {
-              const next = new Set(prev);
-              if (next.has('signals')) next.delete('signals');
-              else next.add('signals');
-              return next;
-            })}
+            onClick={() => {
+              setUserHasManuallyToggled(true);
+              setVisibleSections(prev => {
+                const next = new Set(prev);
+                if (next.has('signals')) next.delete('signals');
+                else next.add('signals');
+                return next;
+              });
+            }}
             className="w-full p-6 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
           >
             <div className="flex items-center gap-4">
@@ -3660,11 +3673,11 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
                   <div className="space-y-4">
                     {alphaSignals.map((signal, i) => (
                       <div key={i} className="bg-gradient-to-r from-[#ff6f20]/10 to-transparent border border-[#ff6f20]/20 rounded-2xl p-5">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: 'rgba(255, 111, 32, 0.35)', color: '#ff6f20' }}>
-                              {i + 1}
-                            </div>
+                        <div className="flex items-start gap-4 mb-3">
+                          <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-bold" style={{ backgroundColor: 'rgba(255, 111, 32, 0.35)', color: '#ff6f20' }}>
+                            {i + 1}
+                          </div>
+                          <div className="flex-1 min-w-0">
                             <h4 className="font-semibold text-white">{signal.name}</h4>
                           </div>
                         </div>
@@ -3710,12 +3723,15 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
         >
           <button
             type="button"
-            onClick={() => setVisibleSections(prev => {
-              const next = new Set(prev);
-              if (next.has('content')) next.delete('content');
-              else next.add('content');
-              return next;
-            })}
+            onClick={() => {
+              setUserHasManuallyToggled(true);
+              setVisibleSections(prev => {
+                const next = new Set(prev);
+                if (next.has('content')) next.delete('content');
+                else next.add('content');
+                return next;
+              });
+            }}
             className="w-full p-6 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
           >
             <div className="flex items-center gap-4">
@@ -3855,12 +3871,15 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
         >
           <button
             type="button"
-            onClick={() => setVisibleSections(prev => {
-              const next = new Set(prev);
-              if (next.has('outreach')) next.delete('outreach');
-              else next.add('outreach');
-              return next;
-            })}
+            onClick={() => {
+              setUserHasManuallyToggled(true);
+              setVisibleSections(prev => {
+                const next = new Set(prev);
+                if (next.has('outreach')) next.delete('outreach');
+                else next.add('outreach');
+                return next;
+              });
+            }}
             className="w-full p-6 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
           >
             <div className="flex items-center gap-4">
