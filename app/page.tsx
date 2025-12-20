@@ -254,7 +254,68 @@ export default function Home() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [companyName, setCompanyName] = useState("");
+  const [companyType, setCompanyType] = useState("");
   const [role, setRole] = useState("");
+
+  // === STRUCTURED DATA (Schema-aligned) ===
+
+  // Prompt 1 outputs
+  const [primaryOffering, setPrimaryOffering] = useState("");
+
+  // Prompt 2 outputs
+  const [idealCompanyProfile, setIdealCompanyProfile] = useState<{
+    companyStage: string;
+    companySize: string;
+    industryVerticals: string[];
+    keyCharacteristics: string[];
+    rawText: string;
+  }>({ companyStage: "", companySize: "", industryVerticals: [], keyCharacteristics: [], rawText: "" });
+
+  const [buyingCommittee, setBuyingCommittee] = useState<{
+    role: string;
+    type: string;
+    painTrigger: string;
+    evaluationPriority: string;
+  }[]>([]);
+
+  const [primaryBuyerRole, setPrimaryBuyerRole] = useState("");
+  const [painTriggers, setPainTriggers] = useState<string[]>([]);
+
+  // Prompt 3 outputs
+  const [companyAnalysis, setCompanyAnalysis] = useState<{
+    positioningSummary: string;
+    painAddressed: string;
+    positioningObservation: string;
+  }>({ positioningSummary: "", painAddressed: "", positioningObservation: "" });
+
+  // Prompt 4 outputs
+  const [icpResearchData, setIcpResearchData] = useState<{
+    jtbdList: { persona: string; jtbd: string }[];
+    signalSystem: { category: string; signalName: string; whatToDetect: string; recommendedMotion: string }[];
+    signalBlindSpot: string;
+  }>({ jtbdList: [], signalSystem: [], signalBlindSpot: "" });
+
+  // Derived from Prompt 4
+  const [signalSystemSummary, setSignalSystemSummary] = useState<string[]>([]);
+  const [topSignals, setTopSignals] = useState<{ category: string; signalName: string; whatToDetect: string; recommendedMotion: string }[]>([]);
+
+  // Prompt 5 outputs
+  const [competitiveData, setCompetitiveData] = useState<{
+    competitiveLandscape: string;
+    competitorComparison: { competitor: string; primaryStrength: string; primaryWeakness: string; battleground: string }[];
+    competitiveGaps: string;
+    defensibilityAssessment: string;
+  }>({ competitiveLandscape: "", competitorComparison: [], competitiveGaps: "", defensibilityAssessment: "" });
+
+  // Prompt 6 outputs
+  const [contentStrategyData, setContentStrategyData] = useState<{
+    contentFootprint: string;
+    buyerAlignmentAudit: string;
+    signalOpportunityAssessment: string;
+    contentGrade: string;
+    contentGradeRationale: string;
+    priorityRecommendations: { rank: number; impact: string; title: string; explanation: string }[];
+  }>({ contentFootprint: "", buyerAlignmentAudit: "", signalOpportunityAssessment: "", contentGrade: "", contentGradeRationale: "", priorityRecommendations: [] });
   const [companySize, setCompanySize] = useState("");
   const [crm, setCrm] = useState("");
   const [selectedVendors, setSelectedVendors] = useState<string[]>([]);
@@ -290,9 +351,9 @@ export default function Home() {
   });
 
   // New outputs: alpha signals, pillar content, podcast guests
-  const [alphaSignals, setAlphaSignals] = useState<{name: string; source: string; detection: string; impact: string; example: string}[]>([]);
-  const [pillarContent, setPillarContent] = useState<{title: string; concept: string; dataSources: string; cadence: string} | null>(null);
-  const [podcastGuests, setPodcastGuests] = useState<{name: string; company: string; icpMatch: string; topic: string; whyInvite: string}[]>([]);
+  const [alphaSignals, setAlphaSignals] = useState<{name: string; whyAlpha: string; source: string; detection: string; motion: string; example: string}[]>([]);
+  const [pillarContent, setPillarContent] = useState<{title: string; angle: string; targetBuyer: string; dataFoundation: string; signalCapture: string; repurposing: string; cadence: string}[]>([]);
+  const [podcastGuests, setPodcastGuests] = useState<{archetype: string; guestType: string; profile: string; icpConnection: string; topic: string; strategicValue: string}[]>([]);
 
   // Report and HubSpot
   const [reportData, setReportData] = useState<{narrative: string; icp: string; content: string; competitive: string} | null>(null);
@@ -331,7 +392,20 @@ export default function Home() {
         if (data.firstName) setFirstName(data.firstName);
         if (data.lastName) setLastName(data.lastName);
         if (data.companyName) setCompanyName(data.companyName);
+        if (data.companyType) setCompanyType(data.companyType);
         if (data.role) setRole(data.role);
+        // Structured data (schema-aligned)
+        if (data.primaryOffering) setPrimaryOffering(data.primaryOffering);
+        if (data.idealCompanyProfile) setIdealCompanyProfile(data.idealCompanyProfile);
+        if (data.buyingCommittee) setBuyingCommittee(data.buyingCommittee);
+        if (data.primaryBuyerRole) setPrimaryBuyerRole(data.primaryBuyerRole);
+        if (data.painTriggers) setPainTriggers(data.painTriggers);
+        if (data.companyAnalysis) setCompanyAnalysis(data.companyAnalysis);
+        if (data.icpResearchData) setIcpResearchData(data.icpResearchData);
+        if (data.signalSystemSummary) setSignalSystemSummary(data.signalSystemSummary);
+        if (data.topSignals) setTopSignals(data.topSignals);
+        if (data.competitiveData) setCompetitiveData(data.competitiveData);
+        if (data.contentStrategyData) setContentStrategyData(data.contentStrategyData);
         if (data.companySize) setCompanySize(data.companySize);
         if (data.crm) setCrm(data.crm);
         if (data.selectedVendors) setSelectedVendors(data.selectedVendors);
@@ -367,7 +441,20 @@ export default function Home() {
         firstName,
         lastName,
         companyName,
+        companyType,
         role,
+        // Structured data (schema-aligned)
+        primaryOffering,
+        idealCompanyProfile,
+        buyingCommittee,
+        primaryBuyerRole,
+        painTriggers,
+        companyAnalysis,
+        icpResearchData,
+        signalSystemSummary,
+        topSignals,
+        competitiveData,
+        contentStrategyData,
         companySize,
         crm,
         selectedVendors,
@@ -389,7 +476,7 @@ export default function Home() {
     } catch (e) {
       console.error('Failed to save session:', e);
     }
-  }, [isHydrated, currentStep, websiteUrl, domain, email, firstName, lastName, companyName, role, companySize, crm, selectedVendors, selectedSignals, alignment, research, reportData, contactId, products, selectedProduct, discoveredICPs, selectedICPs, backgroundData, alphaSignals, pillarContent, podcastGuests]);
+  }, [isHydrated, currentStep, websiteUrl, domain, email, firstName, lastName, companyName, companyType, role, companySize, crm, selectedVendors, selectedSignals, alignment, research, reportData, contactId, products, selectedProduct, discoveredICPs, selectedICPs, backgroundData, alphaSignals, pillarContent, podcastGuests, primaryOffering, idealCompanyProfile, buyingCommittee, primaryBuyerRole, painTriggers, companyAnalysis, icpResearchData, signalSystemSummary, topSignals, competitiveData, contentStrategyData]);
 
   // Rotate loading stages and insights during wait
   useEffect(() => {
@@ -440,7 +527,20 @@ export default function Home() {
     setDomain("");
     setEmail("");
     setCompanyName("");
+    setCompanyType("");
     setRole("");
+    // Reset structured data (schema-aligned)
+    setPrimaryOffering("");
+    setIdealCompanyProfile({ companyStage: "", companySize: "", industryVerticals: [], keyCharacteristics: [], rawText: "" });
+    setBuyingCommittee([]);
+    setPrimaryBuyerRole("");
+    setPainTriggers([]);
+    setCompanyAnalysis({ positioningSummary: "", painAddressed: "", positioningObservation: "" });
+    setIcpResearchData({ jtbdList: [], signalSystem: [], signalBlindSpot: "" });
+    setSignalSystemSummary([]);
+    setTopSignals([]);
+    setCompetitiveData({ competitiveLandscape: "", competitorComparison: [], competitiveGaps: "", defensibilityAssessment: "" });
+    setContentStrategyData({ contentFootprint: "", buyerAlignmentAudit: "", signalOpportunityAssessment: "", contentGrade: "", contentGradeRationale: "", priorityRecommendations: [] });
     setCompanySize("");
     setCrm("");
     setSelectedVendors([]);
@@ -460,7 +560,7 @@ export default function Home() {
     setSelectedICPs([]);
     setBackgroundData({ websiteContent: null, companyPosts: null, ceoPosts: null, anysiteQuery: null });
     setAlphaSignals([]);
-    setPillarContent(null);
+    setPillarContent([]);
     setPodcastGuests([]);
     setLoadingStage(0);
     setCurrentInsight(0);
@@ -597,239 +697,1028 @@ export default function Home() {
     }
   };
 
-const getCompanyPrompt = () => `Search the web for "${domain}" and specifically their "${selectedProduct}" product/offering.
-After researching, analyze ${domain}'s "${selectedProduct}" for a GTM diagnostic. Write directly TO the reader using "you/your".
-CRITICAL: Start your response with the first header "WHAT YOU DO" - no preamble.
+const getCompanyPrompt = () => `You are a B2B go-to-market strategist conducting a positioning analysis as part of a GTM diagnostic.
 
-Use these exact ALL CAPS headers:
+Your goal is NOT to summarize what the company already knows about themselves. Your goal is to assess how clearly and effectively their positioning communicates to potential buyers — and surface observations they may not have articulated.
+
+INPUTS:
+- DOMAIN: ${domain}
+- COMPANY TYPE: ${companyType || "B2B company"}
+- PRODUCT: ${selectedProduct}
+- TARGET BUYER PROFILE: ${idealCompanyProfile.rawText || "Not yet defined"}
+- PRIMARY BUYER ROLE: ${primaryBuyerRole || "Decision maker"}
+
+RESEARCH SOURCES:
+1. Company website: homepage, product pages, about page, pricing page
+2. Third-party mentions: G2, Capterra, LinkedIn, Crunchbase
+3. Competitor landscape: Note how alternatives position themselves
+
+ANALYSIS REQUIRED:
+
+Write directly TO the company using "you/your" language. Be specific — generic observations destroy credibility.
+
+---
 
 WHAT YOU DO
-Describe in 2-3 sentences what "${selectedProduct}" does, who it serves, and its core value proposition.
-THE PROBLEM YOU SOLVE
-What specific pain point or challenge do you address for your customers?
+In 2-3 sentences, describe what ${selectedProduct} does, who it's for, and the core outcome it delivers. Be precise — if their messaging is vague, note that.
 
-YOUR DIFFERENTIATION
-What makes you unique compared to alternatives?
+THE PAIN YOU ADDRESS
+What specific, urgent problem does this solve? Frame it in terms of what the buyer experiences BEFORE finding this solution. If their website doesn't make this clear, say so.
 
-RULES:
-- NO PREAMBLE - start directly with WHAT YOU DO header
-- Write TO the reader using "you/your"
-- No markdown formatting`;
+HOW YOU'RE POSITIONED
+Based on your research, how does this product sit in the competitive landscape? Don't just list differentiators — assess whether the positioning is:
+- Clear and specific, or generic and forgettable
+- Aligned with what the target buyer actually cares about
+- Distinct from alternatives, or lost in a crowded field
+
+POSITIONING OBSERVATION
+Surface ONE insight about their GTM positioning that they may not have explicitly articulated. This could be:
+- A strength they're underselling
+- A gap between their messaging and their actual buyer's priorities
+- A competitive angle they're not leveraging
+- Friction in how their value prop is communicated
+
+---
+
+OUTPUT FORMAT:
+Use these exact ALL CAPS headers. No preamble — start directly with WHAT YOU DO.
+No markdown formatting (no bold, no bullets, no headers with #).
+
+WHAT YOU DO
+[content]
+
+THE PAIN YOU ADDRESS
+[content]
+
+HOW YOU'RE POSITIONED
+[content]
+
+POSITIONING OBSERVATION
+[content]
+
+---
+
+IF UNABLE TO ANALYZE:
+If the website lacks sufficient information to assess positioning, note: "LIMITED VISIBILITY: [reason]" under the relevant section and provide your best inference.`;
 
   const getICPPrompt = () => {
-    const ctx = research.company.refined || research.company.initial || "";
-    const contextStr = cleanResponse(ctx).substring(0, 400);
-return `Search the web for "${domain}" and their "${selectedProduct}" to understand the business and market.
-Create the ICP section for ${domain}'s "${selectedProduct}". Write directly TO the reader using "you/your".
-${contextStr ? `Company Context: ${contextStr}` : ""}
+    // Build buying committee summary from structured data
+    const committeeText = buyingCommittee.length > 0
+      ? buyingCommittee.map((m, i) =>
+          `${i + 1}. ROLE: ${m.role}\n   TYPE: ${m.type}\n   PAIN TRIGGER: ${m.painTrigger}\n   EVALUATION PRIORITY: ${m.evaluationPriority}`
+        ).join('\n\n')
+      : discoveredICPs.map((icp, i) =>
+          `${i + 1}. ROLE: ${icp.title}\n   ${icp.description}`
+        ).join('\n\n');
 
-CRITICAL: Start with "YOUR IDEAL BUYERS" header - no preamble.
+return `You are a B2B signal strategist building a buying signal system as part of a GTM diagnostic.
 
-Use these exact ALL CAPS headers:
+This section is the core of the diagnostic. Your goal is to identify the specific, observable signals that indicate a company or buyer is ready to purchase — BEFORE competitors notice.
 
-YOUR IDEAL BUYERS
-Describe the companies you should target: industry, size, growth stage.
+INPUTS:
+- DOMAIN: ${domain}
+- PRODUCT: ${selectedProduct}
+- COMPANY TYPE: ${companyType || "B2B company"}
+- IDEAL COMPANY PROFILE: ${idealCompanyProfile.rawText || "Not yet defined"}
+- BUYING COMMITTEE:
+${committeeText || "Not yet defined"}
 
-PERSONAS AND JOBS TO BE DONE
-List 3-4 key personas. For each:
+Do NOT repeat the ICP or persona definitions — those are already established. This prompt builds on them.
+
+RESEARCH APPROACH:
+1. Analyze what events, behaviors, or conditions typically precede a purchase of this type of product
+2. Consider signals visible through LinkedIn, job postings, news, tech stack changes, and funding announcements
+3. Map signals to the specific personas in the buying committee
+
+---
+
+ANALYSIS REQUIRED:
+
+JOBS TO BE DONE
+For the top 3 personas from the buying committee, define their JTBD:
+
+PERSONA: [Title from buying committee]
+JTBD: When [triggering situation], I want to [action/capability], so I can [desired outcome].
+
+---
+
+SIGNAL SYSTEM
+Create 6-8 buying signals. Each signal should be:
+- OBSERVABLE: Something you can actually detect through public data, tools, or outreach
+- SPECIFIC: Not "shows interest" — what exact behavior or event?
+- ACTIONABLE: Clearly triggers a response
+
+Categorize signals by type:
+
+BEHAVIORAL SIGNALS (actions the buyer takes)
+TECHNOGRAPHIC SIGNALS (tool adoption, stack changes)
+INTENT SIGNALS (research behavior, content consumption)
+CONTEXTUAL SIGNALS (company events: funding, hiring, leadership changes)
+
+Include at least one signal from 3+ categories.
+
+---
+
+SIGNAL BLIND SPOT
+Identify ONE signal type that most companies selling ${selectedProduct} or similar products miss. Explain why it matters and how to detect it.
+
+---
+
+OUTPUT FORMAT:
+
+JOBS TO BE DONE
+
 PERSONA: [Title]
-GOAL: [What outcome they want]
+JTBD: When [situation], I want to [action], so I can [outcome].
+
+PERSONA: [Title]
+JTBD: When [situation], I want to [action], so I can [outcome].
+
+PERSONA: [Title]
 JTBD: When [situation], I want to [action], so I can [outcome].
 
 SIGNAL SYSTEM
-Create exactly 6 alpha signals. Each row on its OWN LINE with pipe separators:
 
-Signal Name | Description | Motion Triggered
+[Category Name]
+Signal Name | What to Detect | Recommended Motion
+
+[Category Name]
+Signal Name | What to Detect | Recommended Motion
+
+...
+
+SIGNAL BLIND SPOT
+[Description of the missed signal and how to detect it]
+
+---
+
+MOTION OPTIONS (use these for "Recommended Motion" column):
+- Warm Outreach: Personalized email or LinkedIn from sales
+- Nurture Sequence: Add to automated email cadence
+- Content Offer: Send relevant resource (case study, guide, webinar)
+- Executive Touch: High-level outreach from leadership
+- Monitor: Track for additional signals before engaging
+
+---
 
 RULES:
-- NO PREAMBLE
-- Each signal on its OWN LINE
-- 3 columns separated by |
-- 6 signals total`;
+- NO PREAMBLE — start directly with JOBS TO BE DONE header
+- Each signal row on its own line
+- Pipe separators between columns
+- No markdown formatting`;
   };
 
-const getCompetitivePrompt = () => `Search the web for "${domain}" "${selectedProduct}" competitors.
+const getCompetitivePrompt = () => {
+return `You are a B2B competitive intelligence analyst conducting a competitive landscape assessment as part of a GTM diagnostic.
 
-CRITICAL: Start with "COMPETITIVE LANDSCAPE" header - no preamble.
+Your goal is to provide an honest, actionable view of the competitive environment — not to flatter the company. If competitors have genuine advantages, say so. That's the insight.
 
-Use this EXACT structure:
+INPUTS:
+- DOMAIN: ${domain}
+- PRODUCT: ${selectedProduct}
+- COMPANY TYPE: ${companyType || "B2B company"}
+- POSITIONING SUMMARY: ${companyAnalysis.positioningSummary || "Not yet analyzed"}
+- IDEAL COMPANY PROFILE: ${idealCompanyProfile.rawText || "Not yet defined"}
+
+RESEARCH SOURCES (in priority order):
+1. G2, Capterra, TrustRadius — competitor grids, head-to-head comparisons, reviews
+2. Industry analyst reports or blog comparisons (search: "${selectedProduct} vs" or "${selectedProduct} comparison")
+3. Competitor websites — positioning, pricing, customer logos
+4. LinkedIn and Crunchbase — funding, growth signals, market momentum
+
+---
+
+ANALYSIS REQUIRED:
 
 COMPETITIVE LANDSCAPE
-[2-3 sentences about the market]
+Provide 2-3 sentences describing the competitive environment:
+- How crowded is this space?
+- Is there a dominant player, or is it fragmented?
+- What's the primary axis of competition (price, features, vertical focus, ease of use)?
 
-COMPARISON TABLE
-Competitor1 | Their Strength | Their Weakness | Where You Win
-Competitor2 | Their Strength | Their Weakness | Where You Win
-Competitor3 | Their Strength | Their Weakness | Where You Win
-Competitor4 | Their Strength | Their Weakness | Where You Win
-Competitor5 | Their Strength | Their Weakness | Where You Win
+COMPETITOR COMPARISON
+Identify 3-6 relevant competitors (use as many as are genuinely relevant — don't pad, don't truncate).
 
-YOUR COMPETITIVE MOAT
-[What makes ${domain}'s "${selectedProduct}" hard to compete with]
+For each competitor, assess:
+| Competitor | Primary Strength | Primary Weakness | Battleground |
+
+Column definitions:
+- COMPETITOR: Company or product name (1-3 words)
+- PRIMARY STRENGTH: Their clearest advantage (sourced from reviews or market presence, not your assumption)
+- PRIMARY WEAKNESS: Their most common criticism (from G2/Capterra reviews or known market perception)
+- BATTLEGROUND: The scenario or buyer segment where ${domain} competes directly with them — and an honest assessment of who typically wins and why
+
+COMPETITIVE GAPS
+Identify 1-2 gaps or opportunities in the competitive landscape:
+- Underserved segments no one is targeting well
+- Emerging needs competitors haven't addressed
+- Positioning white space ${domain} could claim
+
+DEFENSIBILITY ASSESSMENT
+Honestly assess ${domain}'s competitive defensibility:
+- Do they have a genuine moat (network effects, switching costs, proprietary data, brand)?
+- Or are they competing on execution/features that could be replicated?
+- What would it take for a competitor to displace them?
+
+If defensibility is weak, say so. That's a diagnostic insight, not a failure.
+
+---
+
+OUTPUT FORMAT:
+
+COMPETITIVE LANDSCAPE
+[2-3 sentences]
+
+COMPETITOR COMPARISON
+Competitor | Primary Strength | Primary Weakness | Battleground
+[row]
+[row]
+...
+
+COMPETITIVE GAPS
+[1-2 observations]
+
+[After the gaps, add this exact line:]
+Seeing the whitespace is one thing. Capturing it requires signal infrastructure to act before competitors notice.
+
+DEFENSIBILITY ASSESSMENT
+[Honest assessment — 2-4 sentences]
+
+---
 
 RULES:
-- NO PREAMBLE
-- Competitor names 1-3 words only
-- Each competitor row MUST be on its own line
-- Each row has exactly 4 pipe-separated values
-- Put a blank line between each section
-- CRITICAL: Each competitor must be on a SEPARATE LINE with a line break after it`;
+- NO PREAMBLE — start with COMPETITIVE LANDSCAPE header
+- Each competitor row on its own line with pipe separators
+- 3-6 competitors (as many as relevant, no padding)
+- Blank line between sections
+- No markdown formatting
+- Be honest. Flattery is failure.
+
+---
+
+IF DATA IS LIMITED:
+If the competitive landscape is unclear or the product category is too niche for meaningful comparison, state: "LIMITED COMPETITIVE DATA: [reason]" and provide your best assessment with noted confidence level.`;
+  };
 
   const getContentPrompt = () => {
-    const ctx = research.icp.refined || research.icp.initial;
-return `Search the web for "${domain}" "${selectedProduct}" content - blog, LinkedIn, podcasts.
-Analyze content strategy. Write TO the reader using "you/your".
+    // Format JTBD list from structured data
+    const jtbdListText = icpResearchData.jtbdList.length > 0
+      ? icpResearchData.jtbdList.map(j => `PERSONA: ${j.persona}\nJTBD: ${j.jtbd}`).join('\n\n')
+      : "Not yet defined";
 
-CRITICAL: Start with "CONTENT OVERVIEW" header - no preamble.
+    // Format Signal System from structured data
+    const signalSystemText = icpResearchData.signalSystem.length > 0
+      ? icpResearchData.signalSystem.map(s => `${s.signalName} | ${s.whatToDetect} | ${s.recommendedMotion}`).join('\n')
+      : "Not yet defined";
 
-CONTENT OVERVIEW
-What content you produce.
+    // Build buying committee summary from structured data
+    const committeeText = buyingCommittee.length > 0
+      ? buyingCommittee.map((m, i) => `${i + 1}. ${m.role}: ${m.type} - ${m.painTrigger}`).join('\n')
+      : discoveredICPs.map((icp, i) => `${i + 1}. ${icp.title}: ${icp.description}`).join('\n');
 
-ICP ALIGNMENT
-Does your content address what buyers care about?
+return `You are a B2B content strategist auditing content effectiveness as part of a signal-driven GTM diagnostic.
 
-LINKEDIN PRESENCE
-How visible are you on LinkedIn?
+Your goal is to assess whether the company's content is working as a GTM asset — attracting the right buyers, addressing their pain points, and creating signal opportunities. This is not a content inventory; it's a strategic audit.
 
-CONTENT GRADE: [A/B/C/D/F]
-One sentence explanation.
+INPUTS:
+- DOMAIN: ${domain}
+- PRODUCT: ${selectedProduct}
+- IDEAL COMPANY PROFILE: ${idealCompanyProfile.rawText || "Not yet defined"}
+- BUYING COMMITTEE:
+${committeeText || "Not yet defined"}
+- JOBS TO BE DONE:
+${jtbdListText}
+- BUYING SIGNALS:
+${signalSystemText}
 
-HOW TO IMPROVE
-3-4 specific recommendations.
+RESEARCH APPROACH:
+1. Company blog/resources section — assess topic coverage, depth, recency
+2. LinkedIn company page — posting frequency, content type, engagement patterns
+3. Executive/founder LinkedIn presence — thought leadership visibility
+4. Search "${domain} podcast" or founder name + podcast — guest appearances
+5. Search "${selectedProduct} review" or "${selectedProduct} tutorial" — third-party content about them
+
+---
+
+ANALYSIS REQUIRED:
+
+CONTENT FOOTPRINT
+What content assets exist? Be specific:
+- Blog: Active/Dormant? Approximate post frequency? Topic themes?
+- LinkedIn: Company page activity? Executive presence?
+- Podcast/Video: Guest appearances? Owned shows?
+- Gated assets: Whitepapers, guides, webinars visible?
+
+Don't just list — note what's notably STRONG or notably MISSING.
+
+BUYER ALIGNMENT AUDIT
+Using the buying committee and JTBDs as your benchmark, assess:
+- Which buyer personas does current content serve well?
+- Which personas have little or no content addressing their priorities?
+- Does content speak to early-stage awareness, active evaluation, or both?
+
+Provide specific examples where possible ("Your blog covers X well but has no content addressing Y").
+
+SIGNAL OPPORTUNITY ASSESSMENT
+Content should create signal opportunities — moments where buyer behavior becomes visible. Assess:
+- Do gated assets exist to capture intent signals?
+- Is content structured to identify high-intent engagement (pricing page visits, demo requests, comparison content)?
+- What signal opportunities are being missed?
+
+Your content may be generating awareness but not capturing intent. That's the difference between building an audience and building a pipeline.
+
+CONTENT GRADE
+
+Grade the overall content strategy: A / B / C / D / F
+
+GRADING RUBRIC:
+- A: Comprehensive coverage across personas and buying stages; active, consistent publishing; clear signal capture mechanisms
+- B: Good foundation with gaps; addresses some personas well, others neglected; moderate publishing consistency
+- C: Content exists but unfocused; unclear audience targeting; sporadic publishing; limited signal capture
+- D: Minimal content presence; little strategic intent visible; significant gaps
+- F: No meaningful content presence or completely misaligned with target buyers
+
+Grade: [Letter]
+Rationale: [2-3 sentences explaining the grade with specific evidence]
+
+PRIORITY RECOMMENDATIONS
+Provide exactly 3 recommendations, ranked by impact. For each:
+
+1. [HIGHEST IMPACT] Recommendation title
+   What to do and why it matters for signal-driven GTM.
+
+2. [HIGH IMPACT] Recommendation title
+   What to do and why it matters for signal-driven GTM.
+
+3. [MEDIUM IMPACT] Recommendation title
+   What to do and why it matters for signal-driven GTM.
+
+---
+
+OUTPUT FORMAT:
+
+CONTENT FOOTPRINT
+[Specific observations — what exists, what's strong, what's missing]
+
+BUYER ALIGNMENT AUDIT
+[Assessment against personas and JTBDs]
+
+SIGNAL OPPORTUNITY ASSESSMENT
+[Evaluation of content as a signal-generation mechanism]
+
+CONTENT GRADE
+Grade: [Letter]
+Rationale: [2-3 sentences]
+
+PRIORITY RECOMMENDATIONS
+1. [HIGHEST IMPACT] [Title]
+   [Explanation]
+
+2. [HIGH IMPACT] [Title]
+   [Explanation]
+
+3. [MEDIUM IMPACT] [Title]
+   [Explanation]
+
+---
 
 RULES:
-- NO PREAMBLE
-- Write TO reader using "you/your"`;
+- NO PREAMBLE — start with CONTENT FOOTPRINT header
+- Write TO the reader using "you/your"
+- Be specific — cite actual content where possible
+- Don't soften the grade to be polite. Accuracy builds trust.
+- No markdown formatting
+
+---
+
+IF LIMITED CONTENT EXISTS:
+If the company has minimal or no content presence, don't stretch to fill sections. State clearly: "LIMITED CONTENT PRESENCE: [what was found]" — then focus recommendations on foundational content moves.`;
   };
 
   // New output generation prompts
   const getAlphaSignalsPrompt = () => {
-    const icpContext = selectedICPs.length > 0 ? selectedICPs.join(", ") : "key decision makers";
-    const companyContext = research.company.refined || research.company.initial || "";
-    const competitiveContext = research.competitive.refined || research.competitive.initial || "";
-    return `You're a GTM strategist identifying alpha signals for ${companyName || domain}'s "${selectedProduct}".
+    // Build buying committee summary from structured data
+    const committeeText = buyingCommittee.length > 0
+      ? buyingCommittee.map((m, i) => `${i + 1}. ${m.role}: ${m.type} - ${m.painTrigger}`).join('\n')
+      : discoveredICPs.map((icp, i) => `${i + 1}. ${icp.title}: ${icp.description}`).join('\n');
 
-Context about the company: ${cleanResponse(companyContext).substring(0, 300)}
-Target ICPs: ${icpContext}
-Competitive landscape: ${cleanResponse(competitiveContext).substring(0, 200)}
+    return `You are a signal strategist identifying competitively advantaged buying signals as part of a GTM diagnostic.
 
-Alpha signals are unique buying indicators that predict purchase intent BEFORE competitors notice. They're the "tells" that someone is ready to buy.
+CONTEXT:
+The diagnostic has already identified standard buying signals (job postings, funding announcements, tech adoption, etc.). This section surfaces ALPHA SIGNALS — buying indicators that predict intent BEFORE competitors notice, because most competitors aren't watching for them.
 
-Generate exactly 3 alpha signals, ranked by pipeline impact (highest first).
+Alpha signals share these traits:
+- They fire EARLY — before the prospect is actively searching
+- They're NON-OBVIOUS — not on every competitor's radar
+- They're DETECTABLE — with the right tools and attention
+- They're SPECIFIC — to this product's value proposition and buyer journey
 
-Format EXACTLY like this (each on its own line):
-SIGNAL 1: [Signal Name]
-SOURCE: [Where to detect it - LinkedIn, job boards, press, etc.]
-DETECTION: [Specific trigger or pattern to watch for]
-IMPACT: High
-EXAMPLE: [Specific example for ${domain}]
+INPUTS:
+- COMPANY: ${companyName || domain}
+- PRODUCT: ${selectedProduct}
+- COMPANY TYPE: ${companyType || "B2B company"}
+- IDEAL COMPANY PROFILE: ${idealCompanyProfile.rawText || "Not yet defined"}
+- BUYING COMMITTEE:
+${committeeText || "Not yet defined"}
+- KEY PAIN TRIGGERS: ${painTriggers.join('; ') || "Not yet defined"}
+- COMPETITIVE LANDSCAPE: ${competitiveData.competitiveLandscape || "Not yet analyzed"}
+- STANDARD SIGNALS ALREADY IDENTIFIED: ${signalSystemSummary.join(', ') || "None identified yet"}
 
-SIGNAL 2: [Signal Name]
-SOURCE: [Where to detect it]
-DETECTION: [Specific trigger or pattern]
-IMPACT: Medium-High
-EXAMPLE: [Specific example]
+YOUR TASK:
+Identify exactly 3 alpha signals that are NOT already covered in the standard signal system. These should be specific to ${companyName || domain}'s product and market — not generic B2B signals.
 
-SIGNAL 3: [Signal Name]
-SOURCE: [Where to detect it]
-DETECTION: [Specific trigger or pattern]
-IMPACT: Medium
-EXAMPLE: [Specific example]
+For each signal, provide:
+
+SIGNAL [#]: [Descriptive Name]
+WHY IT'S ALPHA: [One sentence — why competitors miss this]
+SOURCE: [Where to detect: LinkedIn, job boards, G2, press releases, community forums, etc.]
+DETECTION PATTERN: [Specific behavior, event, or data point to monitor]
+RECOMMENDED MOTION: [What to do when this signal fires]
+EXAMPLE: [Concrete example relevant to ${domain}'s target buyer]
+
+---
+
+OUTPUT FORMAT:
+
+SIGNAL 1: [Name]
+WHY IT'S ALPHA: [Why competitors miss this]
+SOURCE: [Detection source]
+DETECTION PATTERN: [What to look for]
+RECOMMENDED MOTION: [Action to take]
+EXAMPLE: [Specific to this company]
+
+SIGNAL 2: [Name]
+WHY IT'S ALPHA: [Why competitors miss this]
+SOURCE: [Detection source]
+DETECTION PATTERN: [What to look for]
+RECOMMENDED MOTION: [Action to take]
+EXAMPLE: [Specific to this company]
+
+SIGNAL 3: [Name]
+WHY IT'S ALPHA: [Why competitors miss this]
+SOURCE: [Detection source]
+DETECTION PATTERN: [What to look for]
+RECOMMENDED MOTION: [Action to take]
+EXAMPLE: [Specific to this company]
+
+---
 
 RULES:
-- NO PREAMBLE - start with SIGNAL 1
-- Be SPECIFIC to their business, not generic
-- Each signal must be actionable and detectable
-- Rank by realistic pipeline impact`;
+- NO PREAMBLE — start with SIGNAL 1
+- Do NOT repeat signals from the standard signal system
+- Each signal must be genuinely non-obvious — "hiring for [role]" is table stakes, not alpha
+- Be specific to ${companyName || domain}'s market and buyer — generic signals fail
+- Rank by competitive advantage (most differentiated signal first)
+
+---
+
+QUALITY CHECK:
+Before outputting, verify each signal passes this test:
+"Would a lazy competitor already be watching for this?"
+If yes → not alpha. Find something better.`;
   };
 
   const getPillarContentPrompt = () => {
-    const icpContext = selectedICPs.length > 0 ? selectedICPs.join(", ") : "key decision makers";
-    const companyContext = research.company.refined || research.company.initial || "";
-    const linkedInData = backgroundData.companyPosts || backgroundData.ceoPosts || "";
-    return `You're a content strategist creating a pillar content concept for ${companyName || domain}'s "${selectedProduct}".
+    // Format JTBD list from structured data
+    const jtbdListText = icpResearchData.jtbdList.length > 0
+      ? icpResearchData.jtbdList.map(j => `PERSONA: ${j.persona}\nJTBD: ${j.jtbd}`).join('\n\n')
+      : "Not yet defined";
 
-Company context: ${cleanResponse(companyContext).substring(0, 300)}
-Target ICPs: ${icpContext}
-${linkedInData ? `Recent LinkedIn activity: ${linkedInData.substring(0, 200)}` : ""}
+    // Format top signals from structured data
+    const topSignalsText = topSignals.length > 0
+      ? topSignals.map(s => `${s.signalName} | ${s.whatToDetect} | ${s.recommendedMotion}`).join('\n')
+      : "Not yet defined";
 
-Create ONE compelling pillar content concept that:
-1. Is data-driven (uses aggregated signals/insights)
-2. Addresses real pain points your ICPs have
-3. Positions ${domain} as a thought leader
-4. Can be repurposed into multiple formats
+    // Build buying committee summary from structured data
+    const committeeText = buyingCommittee.length > 0
+      ? buyingCommittee.map((m, i) => `${i + 1}. ${m.role}: ${m.type} - ${m.painTrigger}`).join('\n')
+      : discoveredICPs.map((icp, i) => `${i + 1}. ${icp.title}: ${icp.description}`).join('\n');
 
-Format EXACTLY like this:
+    return `You are a content strategist designing pillar content concepts as part of a signal-driven GTM diagnostic.
 
-TITLE: [Compelling, specific title - not generic]
+Pillar content is high-value, data-informed content that establishes authority, attracts ideal buyers, and creates ongoing signal opportunities. It's not a blog post — it's an anchor asset that generates attention and engagement over time.
 
-CONCEPT: [2-3 sentences describing the content piece and why it matters to ICPs]
+INPUTS:
+- COMPANY: ${companyName || domain}
+- PRODUCT: ${selectedProduct}
+- COMPANY TYPE: ${companyType || "B2B company"}
+- IDEAL COMPANY PROFILE: ${idealCompanyProfile.rawText || "Not yet defined"}
+- BUYING COMMITTEE:
+${committeeText || "Not yet defined"}
+- JOBS TO BE DONE:
+${jtbdListText}
+- KEY BUYING SIGNALS:
+${topSignalsText}
+- CONTENT GAPS: ${contentStrategyData.buyerAlignmentAudit.substring(0, 400) || "Not yet analyzed"}
+- COMPETITIVE GAPS: ${competitiveData.competitiveGaps.substring(0, 300) || "Not yet analyzed"}
+- POSITIONING OBSERVATION: ${companyAnalysis.positioningObservation.substring(0, 200) || "Not yet analyzed"}
 
-DATA SOURCES: [What data/signals would power this content]
+---
 
-CADENCE: [How often to update/publish - quarterly report, monthly index, etc.]
+YOUR TASK:
+Create 2-3 pillar content concepts that:
+1. Fill a gap in their current content (reference the content audit)
+2. Address pain points or JTBDs of target buyers
+3. Are data-driven — powered by signals, benchmarks, or aggregated insights
+4. Create signal capture opportunities (engagement = intent data)
+5. Position ${companyName || domain} in competitive white space (reference competitive gaps)
 
-FORMAT OPTIONS:
-- [Format 1 - e.g., Interactive report]
-- [Format 2 - e.g., LinkedIn carousel series]
-- [Format 3 - e.g., Podcast episode topics]
+For each concept:
+
+---
+
+CONCEPT [#]: [Compelling, specific title]
+
+THE ANGLE
+[2-3 sentences: What is this content? Why does it matter to the target buyer RIGHT NOW? What question does it answer that no one else is answering well?]
+
+TARGET BUYER
+[Which persona from the buying committee does this primarily serve? What stage of the buying journey?]
+
+DATA FOUNDATION
+[What data powers this content? Be specific:]
+- First-party options: [Customer data, usage patterns, survey results they could gather]
+- Third-party options: [Public data sources, APIs, industry reports they could aggregate]
+- Signal connection: [How does this content relate to buying signals?]
+
+SIGNAL CAPTURE MECHANISM
+[How does this content create signal opportunities?]
+- Gated vs. ungated strategy
+- Engagement signals to track (time on page, section completion, share behavior)
+- Follow-up trigger (what engagement level warrants outreach?)
+
+REPURPOSING ROADMAP
+[How does this anchor asset break down into derivative content?]
+- Awareness stage: [e.g., LinkedIn carousel, podcast episode, blog summary]
+- Consideration stage: [e.g., Comparison tool, ROI calculator, webinar deep-dive]
+- Decision stage: [e.g., Customer proof points, implementation guide]
+
+CADENCE
+[How often should this be updated? Why?]
+- One-time vs. recurring
+- If recurring: quarterly, monthly, annual?
+- What triggers a refresh?
+
+---
+
+OUTPUT FORMAT:
+
+CONCEPT 1: [Title]
+
+THE ANGLE
+[Content]
+
+TARGET BUYER
+[Content]
+
+DATA FOUNDATION
+[Content]
+
+SIGNAL CAPTURE MECHANISM
+[Content]
+
+REPURPOSING ROADMAP
+[Content]
+
+CADENCE
+[Content]
+
+---
+
+CONCEPT 2: [Title]
+...
+
+---
+
+(Optional) CONCEPT 3: [Title]
+...
+
+---
 
 RULES:
-- NO PREAMBLE - start with TITLE
-- Be specific to their industry and ICPs
-- Make it genuinely useful, not promotional`;
+- NO PREAMBLE — start with CONCEPT 1
+- Be specific to ${companyName || domain}'s market and buyers — generic content concepts fail
+- Each concept must connect to a gap identified in the content audit or competitive analysis
+- Titles should be compelling and specific — not "The Ultimate Guide to X"
+- Prioritize concepts that create signal opportunities, not just brand awareness
+
+---
+
+QUALITY CHECK:
+Before outputting, verify each concept:
+1. Would the target buyer actually consume this? (If it's self-serving, cut it)
+2. Does it create detectable engagement signals? (If it's a black box, redesign it)
+3. Is the data foundation realistic for this company to build? (If it requires resources they don't have, simplify it)`;
   };
 
   const getPodcastGuestsPrompt = () => {
-    const icpContext = selectedICPs.length > 0 ? selectedICPs.join(", ") : "key decision makers";
-    const companyContext = research.company.refined || research.company.initial || "";
-    return `You're a podcast producer identifying ideal guests for ${companyName || domain}'s ICP-focused podcast about "${selectedProduct}".
+    // Format JTBD list from structured data
+    const jtbdListText = icpResearchData.jtbdList.length > 0
+      ? icpResearchData.jtbdList.map(j => `PERSONA: ${j.persona}\nJTBD: ${j.jtbd}`).join('\n\n')
+      : "Not yet defined";
 
-Company context: ${cleanResponse(companyContext).substring(0, 300)}
-Target ICPs: ${icpContext}
+    // Format top signals from structured data
+    const topSignalsText = topSignals.length > 0
+      ? topSignals.map(s => `${s.signalName} | ${s.whatToDetect} | ${s.recommendedMotion}`).join('\n')
+      : "Not yet defined";
 
-The goal is to invite ICP-matching guests who:
-1. Are themselves potential buyers or influencers
-2. Bring credibility to topics your ICPs care about
-3. Will share the episode with their network (expanding your reach to more ICPs)
+    // Build buying committee summary from structured data
+    const committeeText = buyingCommittee.length > 0
+      ? buyingCommittee.map((m, i) => `${i + 1}. ${m.role}: ${m.type} - ${m.painTrigger}`).join('\n')
+      : discoveredICPs.map((icp, i) => `${i + 1}. ${icp.title}: ${icp.description}`).join('\n');
 
-Generate exactly 4 podcast guest suggestions.
+    return `You are a podcast strategist designing a guest roster as part of a signal-driven GTM diagnostic.
 
-Format EXACTLY like this (each on its own line):
+A strategic podcast isn't about downloads — it's about building relationships with future buyers and expanding reach to more of them. The right guest is either a potential customer (relationship play) or someone who influences potential customers (reach play).
 
-GUEST 1:
-NAME: [Realistic name and title - make it specific]
-COMPANY: [Type of company they'd work at]
-ICP MATCH: [Which ICP persona they represent]
-TOPIC: [What you'd discuss with them]
-VALUE: [Why inviting them is strategic for ${domain}]
+INPUTS:
+- COMPANY: ${companyName || domain}
+- PRODUCT: ${selectedProduct}
+- IDEAL COMPANY PROFILE: ${idealCompanyProfile.rawText || "Not yet defined"}
+- BUYING COMMITTEE:
+${committeeText || "Not yet defined"}
+- JOBS TO BE DONE:
+${jtbdListText}
+- CONTENT GAPS: ${contentStrategyData.buyerAlignmentAudit.substring(0, 400) || "Not yet analyzed"}
+- COMPETITIVE POSITIONING: ${companyAnalysis.positioningObservation.substring(0, 300) || "Not yet analyzed"}
+- KEY BUYING SIGNALS:
+${topSignalsText}
 
-GUEST 2:
-NAME: [Name and title]
-COMPANY: [Company type]
-ICP MATCH: [ICP persona]
-TOPIC: [Discussion topic]
-VALUE: [Strategic value]
+---
 
-GUEST 3:
-NAME: [Name and title]
-COMPANY: [Company type]
-ICP MATCH: [ICP persona]
-TOPIC: [Discussion topic]
-VALUE: [Strategic value]
+YOUR TASK:
+Design a strategic guest roster of 4-5 guest archetypes. Include a mix of:
 
-GUEST 4:
-NAME: [Name and title]
-COMPANY: [Company type]
-ICP MATCH: [ICP persona]
-TOPIC: [Discussion topic]
-VALUE: [Strategic value]
+**ICP GUESTS (2-3):** People who match the ideal customer profile — potential buyers you'd want a relationship with. The podcast becomes a warm outreach mechanism.
+
+**AMPLIFIER GUESTS (1-2):** People who influence or reach ICPs — analysts, community leaders, practitioners with audience. The podcast becomes a reach expansion mechanism.
+
+For each guest archetype:
+
+---
+
+GUEST [#]: [Archetype Title — e.g., "The Scaling VP of Ops"]
+
+TYPE: [ICP Guest / Amplifier Guest]
+
+PROFILE
+- Role: [Title and seniority level]
+- Company type: [Stage, size, industry]
+- Characteristics: [What makes them ideal — challenges they face, initiatives they're leading]
+
+ICP CONNECTION
+- For ICP Guests: [Which buying committee persona do they represent? What's the relationship-building value?]
+- For Amplifier Guests: [Who is their audience? What's the overlap with your ICP?]
+
+EPISODE TOPIC
+[Specific, compelling topic — not "${companyName || domain}'s product" but a genuine challenge this person faces]
+
+STRATEGIC VALUE
+[Why is this guest strategic? What does ${companyName || domain} gain beyond content?]
+- Relationship angle: [Deal acceleration, reference potential, network access]
+- Reach angle: [Audience size, shareability, credibility boost]
+- Signal angle: [What engagement with this episode would indicate about a listener?]
+
+---
+
+OUTPUT FORMAT:
+
+GUEST 1: [Archetype Title]
+
+TYPE: [ICP Guest / Amplifier Guest]
+
+PROFILE
+- Role: [Content]
+- Company type: [Content]
+- Characteristics: [Content]
+
+ICP CONNECTION
+[Content]
+
+EPISODE TOPIC
+[Content]
+
+STRATEGIC VALUE
+[Content]
+
+---
+
+GUEST 2: [Archetype Title]
+...
+
+---
+
+(Continue for 4-5 guests)
+
+---
 
 RULES:
-- NO PREAMBLE - start with GUEST 1
-- Make guests realistic personas (not real people unless famous in the space)
-- Each guest should match a different ICP or bring different value
-- Topics should be genuinely interesting, not promotional`;
+- NO PREAMBLE — start with GUEST 1
+- Do NOT invent fake names — describe archetypes, not fictional people
+- Each guest should serve a distinct strategic purpose
+- Topics should address real challenges, not be product pitches
+- Include at least 2 ICP Guests and at least 1 Amplifier Guest
+- Consider what buying stage each episode topic serves (awareness vs. evaluation)
+
+---
+
+QUALITY CHECK:
+Before outputting, verify:
+1. Would this person actually say yes? (If the value exchange is one-sided, rethink it)
+2. Would their audience care about this topic? (If it's only interesting to ${companyName || domain}, it won't get shared)
+3. Does this guest create a signal opportunity? (If you can't tell who engages meaningfully, you're flying blind)`;
+  };
+
+  // Prompt 11: Refinement based on user feedback
+  const getRefinementPrompt = (sectionType: string, originalResearch: string, userFeedback: string, relatedSections: string = "") => {
+    // Map phaseKey to section description
+    const sectionMap: {[key: string]: string} = {
+      company: "Company Analysis (Prompt 3)",
+      icp: "ICP & Signal System (Prompt 4)",
+      competitive: "Competitive Analysis (Prompt 5)",
+      content: "Content Strategy Audit (Prompt 6)"
+    };
+    const sectionLabel = sectionMap[sectionType] || sectionType;
+
+    return `You are a GTM strategist refining your analysis based on user feedback.
+
+Your role is EXPERT COLLABORATOR — not order-taker, not immovable wall. You bring GTM expertise; they bring business context. The best output comes from combining both.
+
+INPUTS:
+- SECTION TYPE: ${sectionLabel}
+- ORIGINAL ANALYSIS:
+${originalResearch}
+
+- USER FEEDBACK:
+${userFeedback}
+
+${relatedSections ? `- RELATED CONTEXT:
+${relatedSections}` : ""}
+
+---
+
+FEEDBACK CLASSIFICATION
+
+First, categorize the feedback. Most feedback falls into one or more of these types:
+
+1. **FACTUAL CORRECTION**
+   They know something you got wrong (wrong competitor, outdated info, misunderstood product).
+   → RESPONSE: Accept gracefully. Update the analysis. Thank them for the correction.
+
+2. **ADDITIONAL CONTEXT**
+   New information you didn't have (market nuance, internal priorities, customer insight).
+   → RESPONSE: Incorporate and strengthen the analysis. Show how this changes or reinforces your conclusions.
+
+3. **PREFERENCE WITHOUT REASONING**
+   "I don't like this" or "Change X to Y" without explaining why.
+   → RESPONSE: Probe gently. "I can adjust this — can you help me understand what's driving that preference? I want to make sure the revision serves your actual goal."
+
+4. **STRATEGIC DISAGREEMENT**
+   They disagree with your recommendation based on their own reasoning.
+   → RESPONSE: Engage the reasoning. If their logic is sound, adjust. If it conflicts with GTM best practices, explain your position AND offer a compromise if possible.
+
+5. **SCOPE EXPANSION**
+   They want more (more signals, more competitors, more content ideas).
+   → RESPONSE: Add where it genuinely improves the analysis. Push back if it dilutes focus or creates noise.
+
+6. **MISUNDERSTANDING**
+   They've misread what you wrote or misunderstood a GTM concept.
+   → RESPONSE: Clarify without condescension. Restate the point more clearly.
+
+---
+
+REFINEMENT PRINCIPLES
+
+**Default to collaboration, not combat.**
+Your job isn't to "win" — it's to produce the most accurate, useful analysis. If their feedback makes it better, incorporate it enthusiastically.
+
+**Maintain expertise, not ego.**
+Push back when GTM principles are at stake. But "I disagree" isn't enough — explain WHY, and what you'd recommend instead.
+
+**Distinguish "different" from "wrong."**
+Sometimes their approach isn't wrong, just different. Acknowledge valid alternatives even if you'd recommend something else.
+
+**Flag cascade implications.**
+If a change to this section affects other sections of the diagnostic, note it:
+"This changes the ICP significantly — the signals and content recommendations may need revisiting."
+
+---
+
+SECTION-SPECIFIC RULES
+
+${sectionType === "company" ? `**COMPANY ANALYSIS (Prompt 3)**
+- Accept corrections to product names, offerings, company type
+- Accept positioning corrections — they know their differentiation better than public sources
+- If they add products, assess whether they're distinct offerings or features/tiers
+- Push back if they want to remove honest observations about positioning gaps` : ""}
+
+${sectionType === "icp" ? `**ICP & SIGNAL SYSTEM (Prompt 4)**
+- Accept persona additions or corrections
+- If ICP changes significantly, flag cascade impact on signals and content
+- Accept new signal suggestions if they're observable, specific, and actionable
+- Push back on signals that aren't actually detectable
+- Maintain categorization structure` : ""}
+
+${sectionType === "competitive" ? `**COMPETITIVE ANALYSIS (Prompt 5)**
+- If user suggests NEW COMPETITORS, you MUST add them to the COMPARISON TABLE
+- Keep the exact table format: Competitor | Their Strength | Their Weakness | Where You Win
+- Research the new competitors and provide real insights, not placeholders
+- Maintain all existing competitors in the table unless user explicitly says to remove them
+- Accept corrections to strengths/weaknesses if they have evidence
+- Push back on removing legitimate competitive threats` : ""}
+
+${sectionType === "content" ? `**CONTENT STRATEGY AUDIT (Prompt 6)**
+- Accept context about content they have that you didn't find
+- Defend grades if they're accurate — don't inflate to please
+- Adjust recommendations based on their capacity/priorities
+- Push back if they want purely promotional content` : ""}
+
+---
+
+OUTPUT FORMAT
+
+Produce the REFINED ANALYSIS using the same structure and headers as the original.
+
+At the end, add:
+
+---
+
+ANALYST NOTES
+
+INCORPORATED:
+- [Feedback point]: [Why you incorporated it]
+
+ADJUSTED:
+- [Feedback point]: [How you partially incorporated or adapted it]
+
+MAINTAINED POSITION:
+- [Feedback point]: [Why you respectfully maintained your original stance]
+
+CASCADE FLAG (if applicable):
+- [What other sections may need revisiting based on this change]
+
+---
+
+RULES:
+- NO PREAMBLE — start with the first section header
+- Use same ALL CAPS headers as original
+- Write TO them using "you/your"
+- Be collaborative, not combative
+- Be honest, not sycophantic
+- If all feedback is valid, say so — don't manufacture disagreement
+- If all feedback misses the mark, say so — don't pretend to incorporate it`;
+  };
+
+  // Parse Prompt 3 (Company Analysis) output into structured data
+  const parseCompanyAnalysis = (text: string) => {
+    const whatMatch = text.match(/WHAT YOU DO[:\s]*([\s\S]*?)(?=THE PAIN|HOW YOU|POSITIONING|$)/i);
+    const painMatch = text.match(/THE PAIN YOU ADDRESS[:\s]*([\s\S]*?)(?=HOW YOU|POSITIONING|$)/i);
+    const howMatch = text.match(/HOW YOU(?:'RE| ARE) POSITIONED[:\s]*([\s\S]*?)(?=POSITIONING OBSERVATION|$)/i);
+    const obsMatch = text.match(/POSITIONING OBSERVATION[:\s]*([\s\S]*?)$/i);
+
+    const whatYouDo = whatMatch ? whatMatch[1].trim() : "";
+    const howPositioned = howMatch ? howMatch[1].trim() : "";
+
+    setCompanyAnalysis({
+      positioningSummary: [whatYouDo, howPositioned].filter(Boolean).join(" "),
+      painAddressed: painMatch ? painMatch[1].trim() : "",
+      positioningObservation: obsMatch ? obsMatch[1].trim() : ""
+    });
+  };
+
+  // Parse Prompt 4 (ICP Research) output into structured data
+  const parseIcpResearch = (text: string) => {
+    const jtbdList: { persona: string; jtbd: string }[] = [];
+    const signalSystem: { category: string; signalName: string; whatToDetect: string; recommendedMotion: string }[] = [];
+
+    // Extract JTBDs
+    const jtbdMatch = text.match(/JOBS TO BE DONE[\s\S]*?(?=SIGNAL SYSTEM|$)/i);
+    if (jtbdMatch) {
+      const personaBlocks = jtbdMatch[0].split(/PERSONA:/i).filter((s: string) => s.trim());
+      personaBlocks.forEach((block: string) => {
+        const titleMatch = block.match(/^([^\n]+)/);
+        const jtbdTextMatch = block.match(/JTBD:\s*([^\n]+)/i);
+        if (titleMatch && jtbdTextMatch) {
+          jtbdList.push({
+            persona: titleMatch[1].trim(),
+            jtbd: jtbdTextMatch[1].trim()
+          });
+        }
+      });
+    }
+
+    // Extract Signal System
+    const signalMatch = text.match(/SIGNAL SYSTEM[\s\S]*?(?=SIGNAL BLIND|$)/i);
+    if (signalMatch) {
+      let currentCategory = "";
+      const lines = signalMatch[0].split('\n');
+      lines.forEach((line: string) => {
+        const trimmed = line.trim();
+        // Check if it's a category header
+        if (/^[A-Z][A-Z\s]+SIGNALS?$/i.test(trimmed)) {
+          currentCategory = trimmed.replace(/SIGNALS?$/i, '').trim();
+        }
+        // Check if it's a signal row with pipes
+        else if (trimmed.includes('|')) {
+          const parts = trimmed.split('|').map((p: string) => p.trim());
+          if (parts.length >= 3 && parts[0] && !parts[0].toLowerCase().includes('signal name')) {
+            signalSystem.push({
+              category: currentCategory || "General",
+              signalName: parts[0],
+              whatToDetect: parts[1] || "",
+              recommendedMotion: parts[2] || ""
+            });
+          }
+        }
+      });
+    }
+
+    // Extract signal blind spot
+    const blindSpotMatch = text.match(/SIGNAL BLIND SPOT[:\s]*([\s\S]*?)$/i);
+
+    setIcpResearchData({
+      jtbdList,
+      signalSystem,
+      signalBlindSpot: blindSpotMatch ? blindSpotMatch[1].trim() : ""
+    });
+
+    // Set derived fields
+    setSignalSystemSummary(signalSystem.map(s => s.signalName));
+    setTopSignals(signalSystem.slice(0, 4));
+  };
+
+  // Parse Prompt 5 (Competitive Analysis) output into structured data
+  const parseCompetitiveAnalysis = (text: string) => {
+    const landscapeMatch = text.match(/COMPETITIVE LANDSCAPE[:\s]*([\s\S]*?)(?=COMPETITOR COMPARISON|$)/i);
+    const gapsMatch = text.match(/COMPETITIVE GAPS[:\s]*([\s\S]*?)(?=DEFENSIBILITY|$)/i);
+    const defMatch = text.match(/DEFENSIBILITY ASSESSMENT[:\s]*([\s\S]*?)$/i);
+
+    // Parse competitor comparison table
+    const competitors: { competitor: string; primaryStrength: string; primaryWeakness: string; battleground: string }[] = [];
+    const comparisonMatch = text.match(/COMPETITOR COMPARISON[\s\S]*?(?=COMPETITIVE GAPS|DEFENSIBILITY|$)/i);
+    if (comparisonMatch) {
+      const lines = comparisonMatch[0].split('\n');
+      lines.forEach((line: string) => {
+        const trimmed = line.trim();
+        if (trimmed.includes('|') && !trimmed.toLowerCase().includes('competitor') && !trimmed.match(/^[\-|:]+$/)) {
+          const parts = trimmed.split('|').map((p: string) => p.trim());
+          if (parts.length >= 4 && parts[0]) {
+            competitors.push({
+              competitor: parts[0],
+              primaryStrength: parts[1] || "",
+              primaryWeakness: parts[2] || "",
+              battleground: parts[3] || ""
+            });
+          }
+        }
+      });
+    }
+
+    setCompetitiveData({
+      competitiveLandscape: landscapeMatch ? landscapeMatch[1].trim() : "",
+      competitorComparison: competitors,
+      competitiveGaps: gapsMatch ? gapsMatch[1].trim() : "",
+      defensibilityAssessment: defMatch ? defMatch[1].trim() : ""
+    });
+  };
+
+  // Parse Prompt 6 (Content Strategy) output into structured data
+  const parseContentStrategy = (text: string) => {
+    const footprintMatch = text.match(/CONTENT FOOTPRINT[:\s]*([\s\S]*?)(?=BUYER ALIGNMENT|SIGNAL OPPORTUNITY|$)/i);
+    const alignmentMatch = text.match(/BUYER ALIGNMENT AUDIT[:\s]*([\s\S]*?)(?=SIGNAL OPPORTUNITY|CONTENT GRADE|$)/i);
+    const signalOpMatch = text.match(/SIGNAL OPPORTUNITY ASSESSMENT[:\s]*([\s\S]*?)(?=CONTENT GRADE|PRIORITY|$)/i);
+    const gradeMatch = text.match(/Grade:\s*([A-F])/i);
+    const rationaleMatch = text.match(/Rationale:\s*([^\n]+)/i);
+
+    // Parse priority recommendations
+    const recommendations: { rank: number; impact: string; title: string; explanation: string }[] = [];
+    const recMatch = text.match(/PRIORITY RECOMMENDATIONS[\s\S]*$/i);
+    if (recMatch) {
+      const recBlocks = recMatch[0].split(/\d+\.\s*\[/).filter((s: string) => s.trim());
+      recBlocks.forEach((block: string, i: number) => {
+        const impactMatch = block.match(/^([A-Z\s]+IMPACT)\]/i);
+        const titleMatch = block.match(/\]\s*([^\n]+)/);
+        const explMatch = block.match(/\]\s*[^\n]+\n\s*([^\n]+)/);
+
+        if (impactMatch && titleMatch) {
+          recommendations.push({
+            rank: i + 1,
+            impact: impactMatch[1].trim(),
+            title: titleMatch[1].trim(),
+            explanation: explMatch ? explMatch[1].trim() : ""
+          });
+        }
+      });
+    }
+
+    setContentStrategyData({
+      contentFootprint: footprintMatch ? footprintMatch[1].trim() : "",
+      buyerAlignmentAudit: alignmentMatch ? alignmentMatch[1].trim() : "",
+      signalOpportunityAssessment: signalOpMatch ? signalOpMatch[1].trim() : "",
+      contentGrade: gradeMatch ? gradeMatch[1] : "",
+      contentGradeRationale: rationaleMatch ? rationaleMatch[1].trim() : "",
+      priorityRecommendations: recommendations
+    });
   };
 
   const runResearchPhase = async (phase: string) => {
@@ -838,6 +1727,12 @@ RULES:
     try {
       const result = await callClaude(prompts[phase]());
       setResearch(prev => ({ ...prev, [phase]: { ...prev[phase as keyof typeof prev], initial: result, loading: false } }));
+
+      // Parse structured data based on phase
+      if (phase === "company") parseCompanyAnalysis(result);
+      else if (phase === "icp") parseIcpResearch(result);
+      else if (phase === "competitive") parseCompetitiveAnalysis(result);
+      else if (phase === "content") parseContentStrategy(result);
     } catch {
       setResearch(prev => ({ ...prev, [phase]: { ...prev[phase as keyof typeof prev], initial: "Error loading data.", loading: false } }));
     }
@@ -1055,20 +1950,50 @@ RULES:
     // Fire ALL data fetching in parallel for speed
     const [productsResult, websiteResult, linkedInResult] = await Promise.allSettled([
       // 1. Fetch products/offerings via Claude
-      callClaude(`Search the web for "${domain}" and identify their products, solutions, or service offerings.
+      callClaude(`You are a B2B market research analyst conducting the first stage of a go-to-market diagnostic.
 
-Return ONLY a simple numbered list of their distinct products/offerings. For example:
-1. Product Name A
-2. Product Name B
-3. Service Offering C
+Given a company domain, identify what they sell and how to categorize their business. This output will be used to drive downstream analysis including ICP development, buying signal identification, content audits, and strategic content recommendations.
 
-If they only have ONE main product/solution, just return that one item.
-If it's a service company with no distinct products, list their main service categories.
+DOMAIN: ${domain}
 
-RULES:
-- Maximum 8 items
-- Just the product/service names, no descriptions
-- No preamble, just the numbered list`),
+RESEARCH APPROACH:
+1. Primary source: The company's official website — prioritize /products, /solutions, /services, /pricing, and /platform pages
+2. Secondary sources: G2, Capterra, Crunchbase, or LinkedIn company page for validation
+3. Focus on commercial offerings (what they sell to customers), NOT internal tools, tech stack, or integrations they consume
+
+ANALYSIS REQUIRED:
+
+1. COMPANY TYPE (select one):
+   - Product-Led SaaS
+   - Sales-Led SaaS
+   - Platform / Marketplace
+   - Professional Services
+   - Agency
+   - Hybrid (Product + Services)
+   - Other: [specify]
+
+2. PRIMARY OFFERING:
+   The core product or service that defines their business. One item only.
+
+3. ADDITIONAL OFFERINGS (if applicable):
+   Other distinct products, modules, or service lines. Maximum 6 items.
+   - Do NOT list pricing tiers (e.g., "Pro", "Enterprise") as separate items
+   - Do NOT list features as products
+   - For service businesses, list distinct service categories
+
+OUTPUT FORMAT:
+Return as structured text, no preamble:
+
+COMPANY TYPE: [selection]
+PRIMARY OFFERING: [name]
+ADDITIONAL OFFERINGS:
+1. [name]
+2. [name]
+...
+
+IF UNABLE TO DETERMINE:
+If the domain is parked, under construction, or you cannot confidently identify their offerings, return:
+UNABLE TO ANALYZE: [brief reason — e.g., "domain parked", "holding company with no public offerings", "pre-launch stealth mode"]`),
 
       // 2. Fetch website content via Firecrawl
       fetchWebsiteContent(domain),
@@ -1077,39 +2002,59 @@ RULES:
       fetchLinkedInData("generateQuery", { domain })
     ]);
 
-    // Process products result
+    // Process products result - parse new structured format
     if (productsResult.status === 'fulfilled') {
       const result = productsResult.value;
       let parsed: string[] = [];
 
-      // Try numbered list format
-      const numberedLines = result.match(/^\d+[\.\)]\s*.+$/gm);
-      if (numberedLines && numberedLines.length > 0) {
-        parsed = numberedLines
-          .map((line: string) => line.replace(/^\d+[\.\)]\s*/, '').trim())
-          .filter((line: string) => line.length > 0 && line.length < 100);
-      }
-
-      // Fallback: Try bullet points
-      if (parsed.length === 0) {
-        const bulletLines = result.match(/^[•\-\*]\s*.+$/gm);
-        if (bulletLines && bulletLines.length > 0) {
-          parsed = bulletLines
-            .map((line: string) => line.replace(/^[•\-\*]\s*/, '').trim())
-            .filter((line: string) => line.length > 0 && line.length < 100);
+      // Check if unable to analyze
+      if (result.includes('UNABLE TO ANALYZE')) {
+        setProducts([domain]);
+        setCompanyType("");
+      } else {
+        // Extract COMPANY TYPE
+        const typeMatch = result.match(/COMPANY TYPE:\s*(.+?)(?:\n|$)/i);
+        if (typeMatch && typeMatch[1]) {
+          setCompanyType(typeMatch[1].trim());
         }
-      }
 
-      // Fallback: Split on newlines
-      if (parsed.length === 0) {
-        parsed = result.split('\n')
-          .map((line: string) => line.replace(/^\d+[\.\)]\s*/, '').replace(/^[•\-\*]\s*/, '').trim())
-          .filter((line: string) => line.length > 2 && line.length < 100 && !line.toLowerCase().includes('product') && !line.toLowerCase().includes('here'));
-      }
+        // Extract PRIMARY OFFERING
+        const primaryMatch = result.match(/PRIMARY OFFERING:\s*(.+?)(?:\n|$)/i);
+        if (primaryMatch && primaryMatch[1]) {
+          const primary = primaryMatch[1].trim();
+          if (primary.length > 0 && primary.length < 100) {
+            parsed.push(primary);
+            setPrimaryOffering(primary); // Store structured output per schema
+          }
+        }
 
-      setProducts(parsed.length > 0 ? parsed.slice(0, 8) : [domain]);
+        // Extract ADDITIONAL OFFERINGS (numbered list)
+        const additionalSection = result.match(/ADDITIONAL OFFERINGS:[\s\S]*?(?=\n\n|$)/i);
+        if (additionalSection) {
+          const numberedLines = additionalSection[0].match(/^\d+[\.\)]\s*.+$/gm);
+          if (numberedLines && numberedLines.length > 0) {
+            const additional = numberedLines
+              .map((line: string) => line.replace(/^\d+[\.\)]\s*/, '').trim())
+              .filter((line: string) => line.length > 0 && line.length < 100);
+            parsed = [...parsed, ...additional];
+          }
+        }
+
+        // Fallback: Try old numbered list format if new format not found
+        if (parsed.length === 0) {
+          const numberedLines = result.match(/^\d+[\.\)]\s*.+$/gm);
+          if (numberedLines && numberedLines.length > 0) {
+            parsed = numberedLines
+              .map((line: string) => line.replace(/^\d+[\.\)]\s*/, '').trim())
+              .filter((line: string) => line.length > 0 && line.length < 100);
+          }
+        }
+
+        setProducts(parsed.length > 0 ? parsed.slice(0, 8) : [domain]);
+      }
     } else {
       setProducts([domain]);
+      setCompanyType("");
     }
 
     // Store background data for later use
@@ -1157,48 +2102,160 @@ RULES:
   const discoverICPs = useCallback(async () => {
     if (!selectedProduct || !domain) return;
 
-    const result = await callClaude(`Search the web for "${domain}" "${selectedProduct}" to understand who buys this product.
+    const result = await callClaude(`You are a B2B go-to-market strategist conducting buyer analysis as part of a GTM diagnostic.
 
-List 4-6 distinct Ideal Customer Profiles (buyer segments). For each:
-1. [Title/Role] - [Brief description of who they are and why they buy]
+Given a company, their business type, and a specific product, identify who buys this product and how purchase decisions are made. This output will drive buying signal identification, content strategy, and outreach targeting.
 
-Example format:
-1. VP of Engineering - Technical leader evaluating tools for their team
-2. CTO - Strategic buyer focused on enterprise-wide decisions
-3. DevOps Manager - Hands-on implementer looking for efficiency
+INPUTS:
+- DOMAIN: ${domain}
+- COMPANY TYPE: ${companyType || "B2B Company"}
+- PRODUCT: ${selectedProduct}
 
-RULES:
-- Maximum 6 ICPs
-- Each on its own line
-- Title first, then dash, then brief description
-- No preamble, just the list`);
+RESEARCH APPROACH:
+1. Company's website: /customers, /case-studies, /about, /solutions pages
+2. Third-party validation: G2 reviews, Capterra, TrustRadius (look at reviewer titles)
+3. LinkedIn: Search for people who mention using or implementing this product
+4. Job postings: Roles that mention this product as a required/preferred tool
 
-    // Parse ICPs from response
-    const lines = result.split('\n').filter((l: string) => l.trim());
-    const parsed: {id: string; title: string; description: string}[] = [];
+ANALYSIS REQUIRED:
 
-    lines.forEach((line: string, i: number) => {
-      const match = line.match(/^\d*\.?\s*([^-–]+)\s*[-–]\s*(.+)$/);
-      if (match) {
-        parsed.push({
-          id: `icp-${i}`,
-          title: match[1].trim(),
-          description: match[2].trim()
-        });
-      }
-    });
+1. IDEAL COMPANY PROFILE
+   Describe the type of company most likely to buy this product:
+   - Company stage/size (startup, SMB, mid-market, enterprise)
+   - Industry verticals (if specific)
+   - Key characteristics (e.g., "has a sales team of 10+", "processes high transaction volume")
 
-    if (parsed.length > 0) {
-      setDiscoveredICPs(parsed.slice(0, 6));
+2. BUYING COMMITTEE
+   Identify 3-5 roles involved in the purchase decision. For each:
+
+   ROLE: [Title]
+   TYPE: [Economic Buyer / Champion / Evaluator / End User]
+   PAIN TRIGGER: [What problem makes them search for a solution]
+   EVALUATION PRIORITY: [What they care about most when comparing options]
+
+OUTPUT FORMAT:
+Return as structured text, no preamble.
+
+---
+IDEAL COMPANY PROFILE:
+[2-3 sentences describing the target company]
+
+BUYING COMMITTEE:
+
+1. ROLE: [Title]
+   TYPE: [Economic Buyer / Champion / Evaluator / End User]
+   PAIN TRIGGER: [1 sentence]
+   EVALUATION PRIORITY: [1 sentence]
+
+2. ROLE: [Title]
+   TYPE: [type]
+   PAIN TRIGGER: [1 sentence]
+   EVALUATION PRIORITY: [1 sentence]
+---
+
+EDGE CASES:
+- If this is a product-led/self-serve product, the "buying committee" may be a single individual. Note this and describe that buyer in depth.
+- If insufficient data exists, return: INSUFFICIENT DATA: [reason] — and provide your best inference with a confidence note.
+- If the product appears to target consumers (B2C), return: B2C PRODUCT DETECTED — this diagnostic is designed for B2B companies.`);
+
+    // Parse ICPs from new BUYING COMMITTEE format
+    const parsedICPs: {id: string; title: string; description: string}[] = [];
+    const parsedCommittee: {role: string; type: string; painTrigger: string; evaluationPriority: string}[] = [];
+    const extractedPainTriggers: string[] = [];
+
+    // Extract IDEAL COMPANY PROFILE section and parse into structured object
+    const profileMatch = result.match(/IDEAL COMPANY PROFILE:?\s*\n([\s\S]*?)(?=\n\s*BUYING COMMITTEE|\n\s*$)/i);
+    if (profileMatch) {
+      const profileText = profileMatch[1].trim();
+      // Parse structured fields from the text
+      const stageMatch = profileText.match(/(?:stage|size)[:\s]*([^,\n]+)/i);
+      const sizeMatch = profileText.match(/(\d+[-–]\d+\s*employees|\d+\+?\s*employees)/i);
+      const verticalMatch = profileText.match(/(?:industr(?:y|ies)|vertical)[:\s]*([^,\n]+)/i);
+
+      setIdealCompanyProfile({
+        companyStage: stageMatch ? stageMatch[1].trim() : "",
+        companySize: sizeMatch ? sizeMatch[1].trim() : "",
+        industryVerticals: verticalMatch ? [verticalMatch[1].trim()] : [],
+        keyCharacteristics: [],
+        rawText: profileText
+      });
+    }
+
+    // Extract BUYING COMMITTEE section and parse into structured array
+    const committeeMatch = result.match(/BUYING COMMITTEE:[\s\S]*$/i);
+    if (committeeMatch) {
+      // Parse each role block
+      const roleBlocks = committeeMatch[0].split(/\d+\.\s*ROLE:/i).filter((s: string) => s.trim());
+      roleBlocks.forEach((block: string, i: number) => {
+        const roleMatch = block.match(/^([^\n]+)/);
+        const typeMatch = block.match(/TYPE:\s*([^\n]+)/i);
+        const painMatch = block.match(/PAIN TRIGGER:\s*([^\n]+)/i);
+        const evalMatch = block.match(/EVALUATION PRIORITY:\s*([^\n]+)/i);
+
+        if (roleMatch) {
+          const title = roleMatch[1].trim();
+          const buyerType = typeMatch ? typeMatch[1].trim() : "";
+          const pain = painMatch ? painMatch[1].trim() : "";
+          const evalPriority = evalMatch ? evalMatch[1].trim() : "";
+          const description = buyerType ? `${buyerType}${pain ? ` - ${pain}` : ""}` : pain;
+
+          if (title.length > 0 && title.length < 100) {
+            parsedICPs.push({
+              id: `icp-${i}`,
+              title: title,
+              description: description || "Key decision maker in the buying process"
+            });
+
+            // Store structured buying committee member
+            parsedCommittee.push({
+              role: title,
+              type: buyerType,
+              painTrigger: pain,
+              evaluationPriority: evalPriority
+            });
+
+            // Collect pain triggers for derived state
+            if (pain) {
+              extractedPainTriggers.push(pain);
+            }
+          }
+        }
+      });
+    }
+
+    // Fallback: Try old format (numbered list with dash)
+    if (parsedICPs.length === 0) {
+      const lines = result.split('\n').filter((l: string) => l.trim());
+      lines.forEach((line: string, i: number) => {
+        const match = line.match(/^\d*\.?\s*([^-–]+)\s*[-–]\s*(.+)$/);
+        if (match) {
+          parsedICPs.push({
+            id: `icp-${i}`,
+            title: match[1].trim(),
+            description: match[2].trim()
+          });
+        }
+      });
+    }
+
+    if (parsedICPs.length > 0) {
+      setDiscoveredICPs(parsedICPs.slice(0, 6));
+      setPrimaryBuyerRole(parsedICPs[0].title);
+      // Store structured buying committee and derived pain triggers
+      setBuyingCommittee(parsedCommittee);
+      setPainTriggers(extractedPainTriggers);
     } else {
       // Fallback: generic ICPs
       setDiscoveredICPs([
-        { id: 'icp-1', title: 'Decision Maker', description: 'Executive with budget authority' },
-        { id: 'icp-2', title: 'Technical Evaluator', description: 'Hands-on user who tests solutions' },
-        { id: 'icp-3', title: 'Champion', description: 'Internal advocate who drives adoption' }
+        { id: 'icp-1', title: 'Economic Buyer', description: 'Executive with budget authority' },
+        { id: 'icp-2', title: 'Champion', description: 'Internal advocate who drives adoption' },
+        { id: 'icp-3', title: 'Evaluator', description: 'Hands-on user who tests solutions' }
       ]);
+      setPrimaryBuyerRole('Economic Buyer');
+      setBuyingCommittee([]);
+      setPainTriggers([]);
     }
-  }, [selectedProduct, domain]);
+  }, [selectedProduct, domain, companyType]);
 
   useEffect(() => {
     const step = steps[currentStep];
@@ -1238,28 +2295,79 @@ RULES:
     const getR = (k: string) => cleanResponse(research[k as keyof typeof research].refined || research[k as keyof typeof research].initial || "");
     const getCompetitive = () => research.competitive.refined || research.competitive.initial || "";
 
+    // Format top signals for narrative prompt
+    const topSignalsText = topSignals.length > 0
+      ? topSignals.slice(0, 3).map(s => `${s.signalName} | ${s.whatToDetect} | ${s.recommendedMotion}`).join('\n')
+      : "Not yet defined";
+
+    // Format priority recommendation from structured data
+    const priorityRec = contentStrategyData.priorityRecommendations.length > 0
+      ? `${contentStrategyData.priorityRecommendations[0].title}: ${contentStrategyData.priorityRecommendations[0].explanation}`
+      : "";
+
     // Generate all outputs in parallel for speed
     const [narrativeResult, alphaResult, pillarResult, podcastResult] = await Promise.allSettled([
-      callClaude(`You're a straight-talking GTM advisor. Write an executive summary for ${companyName || domain}'s "${selectedProduct}".
+      callClaude(`You are a straight-talking GTM advisor delivering the final assessment in a signal-driven GTM diagnostic.
 
-Context: ${getR("company").substring(0, 300)}
-ICP: ${getR("icp").substring(0, 200)}
-GTM maturity: ${alignment.gtm || "unknown"}
+Your job: synthesize everything into a tight, memorable summary that makes the reader feel genuinely understood — and shows them the path forward.
 
-YOUR WRITING STYLE:
-- Short, punchy sentences. Some just fragments.
-- Use periods for emphasis. Like. This.
-- No fluff. No "leverage" or "optimize" or "drive growth"
-- Sound like a smart friend giving real talk, not a consultant
-- Be specific to THEIR business, not generic advice
-- Max 150 words total
+INPUTS:
+- COMPANY: ${companyName || domain}
+- PRODUCT: ${selectedProduct}
+- COMPANY TYPE: ${companyType || "B2B company"}
+- POSITIONING SUMMARY: ${companyAnalysis.positioningSummary.substring(0, 400)}
+- POSITIONING OBSERVATION: ${companyAnalysis.positioningObservation.substring(0, 200)}
+- IDEAL COMPANY PROFILE: ${idealCompanyProfile.rawText || "Not yet defined"}
+- PRIMARY BUYER: ${primaryBuyerRole || "Decision maker"}
+- KEY BUYING SIGNALS:
+${topSignalsText}
+- COMPETITIVE POSITION: ${competitiveData.defensibilityAssessment.substring(0, 300)}
+- CONTENT GRADE: ${contentStrategyData.contentGrade || "Unknown"}
+- CONTENT GAPS: ${contentStrategyData.buyerAlignmentAudit.substring(0, 300)}
+- TOP CONTENT REC: ${priorityRec}
 
-Write 3 SHORT paragraphs:
-1. What's working (be specific)
-2. The gap (what's broken or missing)
-3. The unlock (one clear priority)
+---
 
-NO PREAMBLE. Start with paragraph 1.`),
+YOUR VOICE:
+- Short, punchy sentences. Fragments when they hit harder.
+- Periods for emphasis. Like this.
+- No consultant-speak. Ban these words: leverage, optimize, drive, enable, empower, unlock potential, accelerate growth
+- Sound like a sharp friend who's seen a hundred GTM motions and knows what actually works
+- Be specific to THIS company. Generic = failure.
+
+STRUCTURE:
+Write exactly 3 short paragraphs. No headers. No preamble. No sign-off.
+
+PARAGRAPH 1: WHAT'S WORKING
+Start with their genuine strength. Be specific — name the product, the positioning, the asset. If very little is working, acknowledge the foundation they have and be honest about the gap.
+
+PARAGRAPH 2: THE GAP
+The thing that's holding them back. Not a list of problems — THE problem. The bottleneck that explains why good inputs aren't producing good outputs. Connect it to signals: they're either missing them, ignoring them, or not set up to act on them.
+
+PARAGRAPH 3: THE UNLOCK
+One clear priority. Not three things. One. The move that, if they made it, would change the trajectory. Frame it in terms of what becomes possible, not just what they should do.
+
+---
+
+CONSTRAINTS:
+- 120-150 words total. Tight.
+- No bullet points. No headers. Just three paragraphs.
+- Don't soften to be polite. Honesty is the gift.
+- End paragraph 3 with forward momentum — they should feel like action is possible, not overwhelmed.
+
+---
+
+OUTPUT:
+[Paragraph 1]
+
+[Paragraph 2]
+
+[Paragraph 3]
+
+---
+
+IF THE PICTURE IS BLEAK:
+Don't fake positives. Instead, frame paragraph 1 around potential: "The product is there. The market is there. The GTM motion to connect them? That's what's missing." Then proceed honestly.`),
       callClaude(getAlphaSignalsPrompt()),
       callClaude(getPillarContentPrompt()),
       callClaude(getPodcastGuestsPrompt())
@@ -1270,57 +2378,72 @@ NO PREAMBLE. Start with paragraph 1.`),
     const pillarRaw = pillarResult.status === 'fulfilled' ? pillarResult.value : '';
     const podcastRaw = podcastResult.status === 'fulfilled' ? podcastResult.value : '';
 
-    // Parse alpha signals
-    const parsedSignals: {name: string; source: string; detection: string; impact: string; example: string}[] = [];
+    // Parse alpha signals (new format with WHY IT'S ALPHA, DETECTION PATTERN, RECOMMENDED MOTION)
+    const parsedSignals: {name: string; whyAlpha: string; source: string; detection: string; motion: string; example: string}[] = [];
     const signalBlocks = alphaRaw.split(/SIGNAL \d+:/i).filter((s: string) => s.trim());
     signalBlocks.forEach((block: string) => {
       const nameMatch = block.match(/^[^\n]+/);
+      const whyAlphaMatch = block.match(/WHY IT'S ALPHA:\s*([^\n]+)/i);
       const sourceMatch = block.match(/SOURCE:\s*([^\n]+)/i);
-      const detectionMatch = block.match(/DETECTION:\s*([^\n]+)/i);
-      const impactMatch = block.match(/IMPACT:\s*([^\n]+)/i);
+      const detectionMatch = block.match(/DETECTION(?:\s*PATTERN)?:\s*([^\n]+)/i);
+      const motionMatch = block.match(/RECOMMENDED MOTION:\s*([^\n]+)/i);
       const exampleMatch = block.match(/EXAMPLE:\s*([^\n]+)/i);
       if (nameMatch) {
         parsedSignals.push({
           name: nameMatch[0].trim(),
+          whyAlpha: whyAlphaMatch ? whyAlphaMatch[1].trim() : '',
           source: sourceMatch ? sourceMatch[1].trim() : '',
           detection: detectionMatch ? detectionMatch[1].trim() : '',
-          impact: impactMatch ? impactMatch[1].trim() : 'Medium',
+          motion: motionMatch ? motionMatch[1].trim() : '',
           example: exampleMatch ? exampleMatch[1].trim() : ''
         });
       }
     });
     setAlphaSignals(parsedSignals);
 
-    // Parse pillar content
-    const titleMatch = pillarRaw.match(/TITLE:\s*([^\n]+)/i);
-    const conceptMatch = pillarRaw.match(/CONCEPT:\s*([^\n]+(?:\n(?!DATA|CADENCE|FORMAT)[^\n]+)*)/i);
-    const dataMatch = pillarRaw.match(/DATA SOURCES:\s*([^\n]+(?:\n(?!CADENCE|FORMAT)[^\n]+)*)/i);
-    const cadenceMatch = pillarRaw.match(/CADENCE:\s*([^\n]+)/i);
-    if (titleMatch) {
-      setPillarContent({
-        title: titleMatch[1].trim(),
-        concept: conceptMatch ? conceptMatch[1].trim() : '',
-        dataSources: dataMatch ? dataMatch[1].trim() : '',
-        cadence: cadenceMatch ? cadenceMatch[1].trim() : ''
-      });
-    }
+    // Parse pillar content (new format with multiple concepts)
+    const parsedPillar: {title: string; angle: string; targetBuyer: string; dataFoundation: string; signalCapture: string; repurposing: string; cadence: string}[] = [];
+    const conceptBlocks = pillarRaw.split(/CONCEPT \d+:/i).filter((s: string) => s.trim());
+    conceptBlocks.forEach((block: string) => {
+      const titleMatch = block.match(/^([^\n]+)/);
+      const angleMatch = block.match(/THE ANGLE\s*([\s\S]*?)(?=TARGET BUYER|DATA FOUNDATION|$)/i);
+      const targetMatch = block.match(/TARGET BUYER\s*([\s\S]*?)(?=DATA FOUNDATION|SIGNAL CAPTURE|$)/i);
+      const dataMatch = block.match(/DATA FOUNDATION\s*([\s\S]*?)(?=SIGNAL CAPTURE|REPURPOSING|$)/i);
+      const signalMatch = block.match(/SIGNAL CAPTURE(?:\s*MECHANISM)?\s*([\s\S]*?)(?=REPURPOSING|CADENCE|$)/i);
+      const repurposeMatch = block.match(/REPURPOSING(?:\s*ROADMAP)?\s*([\s\S]*?)(?=CADENCE|$)/i);
+      const cadenceMatch = block.match(/CADENCE\s*([\s\S]*?)(?=---|CONCEPT|$)/i);
+      if (titleMatch) {
+        parsedPillar.push({
+          title: titleMatch[1].trim(),
+          angle: angleMatch ? angleMatch[1].trim() : '',
+          targetBuyer: targetMatch ? targetMatch[1].trim() : '',
+          dataFoundation: dataMatch ? dataMatch[1].trim() : '',
+          signalCapture: signalMatch ? signalMatch[1].trim() : '',
+          repurposing: repurposeMatch ? repurposeMatch[1].trim() : '',
+          cadence: cadenceMatch ? cadenceMatch[1].trim() : ''
+        });
+      }
+    });
+    setPillarContent(parsedPillar);
 
-    // Parse podcast guests
-    const parsedGuests: {name: string; company: string; icpMatch: string; topic: string; whyInvite: string}[] = [];
+    // Parse podcast guests (new format with archetypes, types, profiles)
+    const parsedGuests: {archetype: string; guestType: string; profile: string; icpConnection: string; topic: string; strategicValue: string}[] = [];
     const guestBlocks = podcastRaw.split(/GUEST \d+:/i).filter((s: string) => s.trim());
     guestBlocks.forEach((block: string) => {
-      const nameMatch = block.match(/NAME:\s*([^\n]+)/i);
-      const companyMatch = block.match(/COMPANY:\s*([^\n]+)/i);
-      const icpMatch = block.match(/ICP MATCH:\s*([^\n]+)/i);
-      const topicMatch = block.match(/TOPIC:\s*([^\n]+)/i);
-      const valueMatch = block.match(/VALUE:\s*([^\n]+)/i);
-      if (nameMatch) {
+      const archetypeMatch = block.match(/^([^\n]+)/);
+      const typeMatch = block.match(/TYPE:\s*([^\n]+)/i);
+      const profileMatch = block.match(/PROFILE\s*([\s\S]*?)(?=ICP CONNECTION|EPISODE TOPIC|$)/i);
+      const icpConnMatch = block.match(/ICP CONNECTION\s*([\s\S]*?)(?=EPISODE TOPIC|STRATEGIC VALUE|$)/i);
+      const topicMatch = block.match(/EPISODE TOPIC\s*([\s\S]*?)(?=STRATEGIC VALUE|$)/i);
+      const valueMatch = block.match(/STRATEGIC VALUE\s*([\s\S]*?)(?=---|GUEST|$)/i);
+      if (archetypeMatch) {
         parsedGuests.push({
-          name: nameMatch[1].trim(),
-          company: companyMatch ? companyMatch[1].trim() : '',
-          icpMatch: icpMatch ? icpMatch[1].trim() : '',
+          archetype: archetypeMatch[1].trim(),
+          guestType: typeMatch ? typeMatch[1].trim() : '',
+          profile: profileMatch ? profileMatch[1].trim() : '',
+          icpConnection: icpConnMatch ? icpConnMatch[1].trim() : '',
           topic: topicMatch ? topicMatch[1].trim() : '',
-          whyInvite: valueMatch ? valueMatch[1].trim() : ''
+          strategicValue: valueMatch ? valueMatch[1].trim() : ''
         });
       }
     });
@@ -1735,30 +2858,20 @@ NO PREAMBLE. Start with paragraph 1.`),
           <button onClick={async () => {
             if (!r.feedback.trim()) return;
             setResearch(prev => ({ ...prev, [phaseKey]: { ...prev[phaseKey as keyof typeof prev], loading: true } }));
-            const isCompetitive = phaseKey === "competitive";
-            const prompt = `You are an expert GTM strategist. Below is your original analysis and the user's feedback.
-
-ORIGINAL ANALYSIS:
-${r.initial}
-
-USER FEEDBACK:
-${r.feedback}
-
-CRITICAL INSTRUCTIONS:
-1. You are the expert. Do NOT simply accept all feedback.
-2. If feedback provides useful CONTEXT (company details, market info, corrections to facts), incorporate it.
-3. If feedback tries to CHANGE your strategic recommendations without good reason, push back. Explain why your original position is correct.
-4. If feedback contradicts GTM best practices, politely disagree and maintain your expert stance.
-${isCompetitive ? `5. COMPETITIVE ANALYSIS SPECIAL RULES:
-   - If user suggests NEW COMPETITORS, you MUST add them to the COMPARISON TABLE
-   - Keep the exact table format: Competitor | Their Strength | Their Weakness | Where You Win
-   - Research the new competitors and provide real insights, not placeholders
-   - Maintain all existing competitors in the table unless user explicitly says to remove them
-6.` : `5.`} At the end, add a section called "ANALYST NOTES" that briefly explains:
-   - What feedback you incorporated and why
-   - What feedback you respectfully disagreed with and why
-
-Use the same ALL CAPS headers as the original. Write TO them using "you/your". No preamble - start with the first header.`;
+            // Gather related sections for context
+            const relatedParts: string[] = [];
+            if (phaseKey === "icp" && research.company.initial) {
+              relatedParts.push(`COMPANY ANALYSIS:\n${research.company.refined || research.company.initial}`);
+            }
+            if (phaseKey === "competitive" && research.icp.initial) {
+              relatedParts.push(`ICP ANALYSIS:\n${research.icp.refined || research.icp.initial}`);
+            }
+            if (phaseKey === "content") {
+              if (research.icp.initial) relatedParts.push(`ICP ANALYSIS:\n${research.icp.refined || research.icp.initial}`);
+              if (research.competitive.initial) relatedParts.push(`COMPETITIVE ANALYSIS:\n${research.competitive.refined || research.competitive.initial}`);
+            }
+            const relatedSections = relatedParts.join("\n\n---\n\n");
+            const prompt = getRefinementPrompt(phaseKey, r.initial, r.feedback, relatedSections);
             const refined = await callClaude(prompt);
             setResearch(prev => ({ ...prev, [phaseKey]: { ...prev[phaseKey as keyof typeof prev], refined, loading: false } }));
           }} className="mt-3 px-6 py-3 rounded-lg border-2 border-[#ff6f20] text-[#ff6f20] font-semibold hover:bg-[#ff6f20]/10 transition-all">Refine</button>
@@ -2037,9 +3150,10 @@ Use the same ALL CAPS headers as the original. Write TO them using "you/your". N
                 {alphaSignals.map((signal, i) => (
                   <View key={i} style={pdfStyles.signalCard}>
                     <Text style={pdfStyles.signalName}>{i + 1}. {signal.name}</Text>
-                    <Text style={pdfStyles.signalImpact}>{signal.impact}</Text>
+                    {signal.whyAlpha && <Text style={pdfStyles.signalImpact}>{signal.whyAlpha}</Text>}
                     <Text style={pdfStyles.label}>Source: <Text style={pdfStyles.value}>{signal.source}</Text></Text>
                     <Text style={pdfStyles.label}>Detection: <Text style={pdfStyles.value}>{signal.detection}</Text></Text>
+                    {signal.motion && <Text style={pdfStyles.label}>Motion: <Text style={pdfStyles.value}>{signal.motion}</Text></Text>}
                     {signal.example && <Text style={pdfStyles.label}>Example: <Text style={pdfStyles.value}>{signal.example}</Text></Text>}
                   </View>
                 ))}
@@ -2047,13 +3161,19 @@ Use the same ALL CAPS headers as the original. Write TO them using "you/your". N
             )}
 
             {/* Pillar Content */}
-            {pillarContent && (
+            {pillarContent.length > 0 && (
               <View style={pdfStyles.sectionPurple}>
-                <Text style={pdfStyles.sectionTitlePurple}>Pillar Content Concept</Text>
-                <Text style={pdfStyles.signalName}>{pillarContent.title}</Text>
-                <Text style={pdfStyles.text}>{pillarContent.concept}</Text>
-                <Text style={pdfStyles.label}>Data Sources: <Text style={pdfStyles.value}>{pillarContent.dataSources}</Text></Text>
-                <Text style={pdfStyles.label}>Cadence: <Text style={pdfStyles.value}>{pillarContent.cadence}</Text></Text>
+                <Text style={pdfStyles.sectionTitlePurple}>Pillar Content Concepts</Text>
+                <Text style={pdfStyles.text}>High-value anchor assets that establish authority and capture intent signals</Text>
+                {pillarContent.map((concept, i) => (
+                  <View key={i} style={pdfStyles.signalCard}>
+                    <Text style={pdfStyles.signalName}>{i + 1}. {concept.title}</Text>
+                    {concept.angle && <Text style={pdfStyles.text}>{concept.angle}</Text>}
+                    {concept.targetBuyer && <Text style={pdfStyles.label}>Target: <Text style={pdfStyles.value}>{concept.targetBuyer}</Text></Text>}
+                    {concept.signalCapture && <Text style={pdfStyles.label}>Signal Capture: <Text style={pdfStyles.value}>{concept.signalCapture}</Text></Text>}
+                    {concept.cadence && <Text style={pdfStyles.label}>Cadence: <Text style={pdfStyles.value}>{concept.cadence}</Text></Text>}
+                  </View>
+                ))}
               </View>
             )}
           </Page>
@@ -2066,11 +3186,12 @@ Use the same ALL CAPS headers as the original. Write TO them using "you/your". N
                 <Text style={pdfStyles.text}>ICP-matching guests who expand your reach to ideal buyers</Text>
                 {podcastGuests.map((guest, i) => (
                   <View key={i} style={pdfStyles.guestCard}>
-                    <Text style={pdfStyles.guestName}>{i + 1}. {guest.name}</Text>
-                    <Text style={pdfStyles.guestCompany}>{guest.company}</Text>
-                    <Text style={pdfStyles.label}>ICP Match: <Text style={pdfStyles.value}>{guest.icpMatch}</Text></Text>
-                    <Text style={pdfStyles.label}>Topic: <Text style={pdfStyles.value}>{guest.topic}</Text></Text>
-                    {guest.whyInvite && <Text style={pdfStyles.label}>Value: <Text style={pdfStyles.value}>{guest.whyInvite}</Text></Text>}
+                    <Text style={pdfStyles.guestName}>{i + 1}. {guest.archetype}</Text>
+                    <Text style={pdfStyles.guestCompany}>{guest.guestType}</Text>
+                    {guest.profile && <Text style={pdfStyles.label}>Profile: <Text style={pdfStyles.value}>{guest.profile}</Text></Text>}
+                    <Text style={pdfStyles.label}>ICP Connection: <Text style={pdfStyles.value}>{guest.icpConnection}</Text></Text>
+                    <Text style={pdfStyles.label}>Episode Topic: <Text style={pdfStyles.value}>{guest.topic}</Text></Text>
+                    {guest.strategicValue && <Text style={pdfStyles.label}>Strategic Value: <Text style={pdfStyles.value}>{guest.strategicValue}</Text></Text>}
                   </View>
                 ))}
               </View>
@@ -2148,17 +3269,17 @@ ${safeClean(reportData?.narrative)}
 ================================================================================
 ALPHA SIGNALS
 ================================================================================
-${alphaSignals.map((s, i) => `${i + 1}. ${s.name}\n   Impact: ${s.impact}\n   Source: ${s.source}\n   Detection: ${s.detection}\n   Example: ${s.example}`).join('\n\n')}
+${alphaSignals.map((s, i) => `${i + 1}. ${s.name}\n   Why Alpha: ${s.whyAlpha}\n   Source: ${s.source}\n   Detection: ${s.detection}\n   Motion: ${s.motion}\n   Example: ${s.example}`).join('\n\n')}
 
 ================================================================================
 PILLAR CONTENT CONCEPT
 ================================================================================
-${pillarContent ? `${pillarContent.title}\n\n${pillarContent.concept}\n\nData Sources: ${pillarContent.dataSources}\nCadence: ${pillarContent.cadence}` : 'Not generated'}
+${pillarContent.length > 0 ? pillarContent.map((c, i) => `${i + 1}. ${c.title}\n   Angle: ${c.angle}\n   Target: ${c.targetBuyer}\n   Data: ${c.dataFoundation}\n   Signal Capture: ${c.signalCapture}\n   Cadence: ${c.cadence}`).join('\n\n') : 'Not generated'}
 
 ================================================================================
 PODCAST GUESTS
 ================================================================================
-${podcastGuests.map((g, i) => `${i + 1}. ${g.name} - ${g.company}\n   ICP Match: ${g.icpMatch}\n   Topic: ${g.topic}\n   Value: ${g.whyInvite}`).join('\n\n')}
+${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Profile: ${g.profile}\n   ICP Connection: ${g.icpConnection}\n   Episode Topic: ${g.topic}\n   Strategic Value: ${g.strategicValue}`).join('\n\n')}
 `;
         const blob = new Blob([content], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
@@ -2445,6 +3566,7 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.name} - ${g.company}\n   ICP Match:
               {alphaSignals.length > 0 && (
                 <div className="mt-6 border-t border-[#3f3b3a] pt-6">
                   <h4 className="font-semibold text-[#ff8f50] mb-4">Your Alpha Signals</h4>
+                  <p className="text-[#75716f] text-sm mb-4">Buying indicators that predict intent before competitors notice</p>
                   <div className="space-y-4">
                     {alphaSignals.map((signal, i) => (
                       <div key={i} className="bg-gradient-to-r from-[#ff6f20]/10 to-transparent border border-[#ff6f20]/20 rounded-2xl p-5">
@@ -2455,19 +3577,10 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.name} - ${g.company}\n   ICP Match:
                             </div>
                             <h4 className="font-semibold text-white">{signal.name}</h4>
                           </div>
-                          <span
-                            className="px-3 py-1 rounded-full text-xs font-medium"
-                            style={
-                              signal.impact.toLowerCase().includes('high')
-                                ? { backgroundColor: 'rgba(34, 197, 94, 0.25)', color: '#22c55e' }
-                                : signal.impact.toLowerCase().includes('medium')
-                                ? { backgroundColor: 'rgba(255, 221, 31, 0.25)', color: '#ffdd1f' }
-                                : { backgroundColor: 'rgba(255, 255, 255, 0.1)', color: 'rgba(255, 255, 255, 0.6)' }
-                            }
-                          >
-                            {signal.impact}
-                          </span>
                         </div>
+                        {signal.whyAlpha && (
+                          <p className="text-[#ff8f50] text-sm italic mb-3">{signal.whyAlpha}</p>
+                        )}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                           <div>
                             <span className="text-[#75716f]">Source:</span>
@@ -2478,8 +3591,14 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.name} - ${g.company}\n   ICP Match:
                             <span className="text-[#dededd] ml-2">{signal.detection}</span>
                           </div>
                         </div>
-                        {signal.example && (
+                        {signal.motion && (
                           <div className="mt-3 pt-3 border-t border-[#3f3b3a]">
+                            <span className="text-[#75716f] text-sm">Recommended Motion: </span>
+                            <span className="text-[#22c55e] text-sm font-medium">{signal.motion}</span>
+                          </div>
+                        )}
+                        {signal.example && (
+                          <div className="mt-2">
                             <span className="text-[#75716f] text-sm">Example: </span>
                             <span className="text-[#aaa7a6] text-sm italic">{signal.example}</span>
                           </div>
@@ -2578,23 +3697,45 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.name} - ${g.company}\n   ICP Match:
                 </div>
               </div>
 
-              {/* Pillar Content Concept */}
-              {pillarContent && (
+              {/* Pillar Content Concepts */}
+              {pillarContent.length > 0 && (
                 <div className="mt-6 border-t border-[#3f3b3a] pt-6">
-                  <h4 className="font-semibold text-[#ffdd1f] mb-4">Your Pillar Content Concept</h4>
-                  <div className="bg-gradient-to-r from-[#ffdd1f]/10 to-transparent border border-[#ffdd1f]/20 rounded-2xl p-6">
-                    <h5 className="font-bold text-lg text-white mb-3">{pillarContent.title}</h5>
-                    <p className="text-[#dededd] mb-4">{pillarContent.concept}</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div className="bg-[#070606]/50 rounded-xl p-4">
-                        <div className="text-[#75716f] mb-1 font-medium">Data Sources</div>
-                        <div className="text-[#aaa7a6]">{pillarContent.dataSources}</div>
+                  <h4 className="font-semibold text-[#ffdd1f] mb-4">Your Pillar Content Concepts</h4>
+                  <p className="text-[#75716f] text-sm mb-4">High-value anchor assets that establish authority and capture intent signals</p>
+                  <div className="space-y-4">
+                    {pillarContent.map((concept, i) => (
+                      <div key={i} className="bg-gradient-to-r from-[#ffdd1f]/10 to-transparent border border-[#ffdd1f]/20 rounded-2xl p-5">
+                        <div className="flex items-start gap-3 mb-3">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: 'rgba(255, 221, 31, 0.35)', color: '#ffdd1f' }}>
+                            {i + 1}
+                          </div>
+                          <h5 className="font-bold text-lg text-white">{concept.title}</h5>
+                        </div>
+                        {concept.angle && (
+                          <p className="text-[#dededd] mb-4">{concept.angle}</p>
+                        )}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                          {concept.targetBuyer && (
+                            <div>
+                              <span className="text-[#75716f]">Target:</span>
+                              <span className="text-[#dededd] ml-2">{concept.targetBuyer}</span>
+                            </div>
+                          )}
+                          {concept.cadence && (
+                            <div>
+                              <span className="text-[#75716f]">Cadence:</span>
+                              <span className="text-[#dededd] ml-2">{concept.cadence}</span>
+                            </div>
+                          )}
+                        </div>
+                        {concept.signalCapture && (
+                          <div className="mt-3 pt-3 border-t border-[#3f3b3a]">
+                            <span className="text-[#75716f] text-sm">Signal Capture: </span>
+                            <span className="text-[#22c55e] text-sm">{concept.signalCapture}</span>
+                          </div>
+                        )}
                       </div>
-                      <div className="bg-[#070606]/50 rounded-xl p-4">
-                        <div className="text-[#75716f] mb-1 font-medium">Cadence</div>
-                        <div className="text-[#aaa7a6]">{pillarContent.cadence}</div>
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
               )}
@@ -2711,22 +3852,25 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.name} - ${g.company}\n   ICP Match:
                             {i + 1}
                           </div>
                           <div>
-                            <h5 className="font-semibold text-white">{guest.name}</h5>
-                            <p className="text-[#75716f] text-sm">{guest.company}</p>
+                            <h5 className="font-semibold text-white">{guest.archetype}</h5>
+                            <p className="text-[#75716f] text-sm">{guest.guestType}</p>
                           </div>
                         </div>
+                        {guest.profile && (
+                          <p className="text-[#aaa7a6] text-sm mb-3">{guest.profile}</p>
+                        )}
                         <div className="space-y-2 text-sm">
                           <div>
-                            <span className="text-[#9a5d9d] font-medium">ICP Match:</span>
-                            <span className="text-[#aaa7a6] ml-2">{guest.icpMatch}</span>
+                            <span className="text-[#9a5d9d] font-medium">ICP Connection:</span>
+                            <span className="text-[#aaa7a6] ml-2">{guest.icpConnection}</span>
                           </div>
                           <div>
-                            <span className="text-[#ff8f50] font-medium">Topic:</span>
+                            <span className="text-[#ff8f50] font-medium">Episode Topic:</span>
                             <span className="text-[#dededd] ml-2">{guest.topic}</span>
                           </div>
-                          {guest.whyInvite && (
+                          {guest.strategicValue && (
                             <div className="mt-2 pt-2 border-t border-[#3f3b3a]">
-                              <span className="text-[#75716f] italic text-xs">{guest.whyInvite}</span>
+                              <span className="text-[#75716f] italic text-xs">{guest.strategicValue}</span>
                             </div>
                           )}
                         </div>
