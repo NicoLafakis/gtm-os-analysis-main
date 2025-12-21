@@ -4007,21 +4007,27 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
                         {guest.profile && (
                           <p className="text-[#aaa7a6] text-sm mb-3">{guest.profile}</p>
                         )}
-                        <div className="space-y-2 text-sm">
-                          <div>
-                            <span className="text-[#9a5d9d] font-medium">ICP Connection:</span>
-                            <span className="text-[#aaa7a6] ml-2">{guest.icpConnection}</span>
+                        {(guest.icpConnection || guest.topic || guest.strategicValue) && (
+                          <div className="space-y-2 text-sm">
+                            {guest.icpConnection && (
+                              <div>
+                                <span className="text-[#9a5d9d] font-medium">ICP Connection:</span>
+                                <span className="text-[#aaa7a6] ml-2">{guest.icpConnection}</span>
+                              </div>
+                            )}
+                            {guest.topic && (
+                              <div>
+                                <span className="text-[#ff8f50] font-medium">Episode Topic:</span>
+                                <span className="text-[#dededd] ml-2">{guest.topic}</span>
+                              </div>
+                            )}
+                            {guest.strategicValue && (
+                              <div className="mt-2 pt-2 border-t border-[#3f3b3a]">
+                                <span className="text-[#75716f] italic text-xs">{guest.strategicValue}</span>
+                              </div>
+                            )}
                           </div>
-                          <div>
-                            <span className="text-[#ff8f50] font-medium">Episode Topic:</span>
-                            <span className="text-[#dededd] ml-2">{guest.topic}</span>
-                          </div>
-                          {guest.strategicValue && (
-                            <div className="mt-2 pt-2 border-t border-[#3f3b3a]">
-                              <span className="text-[#75716f] italic text-xs">{guest.strategicValue}</span>
-                            </div>
-                          )}
-                        </div>
+                        )}
                       </div>
                     ))}
                   </div>
