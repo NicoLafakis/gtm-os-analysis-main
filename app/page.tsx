@@ -639,6 +639,40 @@ export default function Home() {
     setTimeout(() => setErrorToast(null), 5000);
   }, []);
 
+  // Sync data to HubSpot contact record
+  const syncToHubSpot = useCallback(async (properties: Record<string, string>, stepName?: string) => {
+    if (!email) return; // Need email to identify contact
+
+    try {
+      const payload: Record<string, string> = { ...properties };
+      if (stepName) {
+        payload.gtmos_last_step = stepName;
+      }
+
+      const response = await fetch("/api/hubspot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          objectType: "contacts",
+          searchProperty: "email",
+          searchValue: email,
+          properties: payload
+        })
+      });
+
+      if (!response.ok) {
+        console.error("HubSpot sync failed:", await response.text());
+      } else {
+        const result = await response.json();
+        if (result.id && !contactId) {
+          setContactId(result.id);
+        }
+      }
+    } catch (e) {
+      console.error("HubSpot sync error:", e);
+    }
+  }, [email, contactId]);
+
   const cleanResponse = (text: string) => {
     if (!text) return "";
     let cleaned = text
@@ -1769,6 +1803,17 @@ RULES:
       else if (phase === "icp") parseIcpResearch(result);
       else if (phase === "competitive") parseCompetitiveAnalysis(result);
       else if (phase === "content") parseContentStrategy(result);
+
+      // Sync research data to HubSpot
+      const hubspotFieldMap: Record<string, string> = {
+        company: "gtmos_company_research",
+        icp: "gtmos_icp_profile",
+        competitive: "gtmos_competitive_analysis",
+        content: "gtmos_content_strategy"
+      };
+      if (hubspotFieldMap[phase]) {
+        syncToHubSpot({ [hubspotFieldMap[phase]]: result.substring(0, 65000) }, `research-${phase}`);
+      }
     } catch {
       setResearch(prev => ({ ...prev, [phase]: { ...prev[phase as keyof typeof prev], initial: "Error loading data.", loading: false } }));
     }
@@ -2042,6 +2087,17 @@ RULES:
   // Step 2: Submit contact info and start actual research
   const submitContactAndStartResearch = async () => {
     if (!email) { showError("Please enter your email"); return; }
+
+    // Sync basic info to HubSpot (creates or updates contact)
+    syncToHubSpot({
+      email,
+      firstname: companyName ? "" : "",  // HubSpot default fields
+      company: companyName,
+      gtmos_website_url: websiteUrl,
+      gtmos_role: role,
+      gtmos_company_size: companySize,
+      gtmos_crm: crm
+    }, "basic-info");
 
     setProductsLoading(true);
     setLoadingStage(0);
@@ -2619,6 +2675,19 @@ Don't fake positives. Instead, frame paragraph 1 around potential: "The product 
     } catch (e) {
       console.error("HubSpot company sync error:", e);
     }
+
+    // Sync final report data to contact record
+    syncToHubSpot({
+      gtmos_selected_product: selectedProduct,
+      gtmos_signal_vendors: selectedVendors.join(", "),
+      gtmos_signal_types: selectedSignals.join(", "),
+      gtmos_gtm_alignment: alignment.gtm || "",
+      gtmos_report_narrative: cleanResponse(narrative).substring(0, 65000),
+      gtmos_report_icp: (research.icp.refined || research.icp.initial || "").substring(0, 65000),
+      gtmos_report_content: getR("content").substring(0, 65000),
+      gtmos_report_competitive: cleanCompetitiveResponse(getCompetitive()).substring(0, 65000),
+      gtmos_completed_at: new Date().toISOString()
+    }, "report-complete");
 
     setCurrentStep(steps.indexOf("results"));
   };
