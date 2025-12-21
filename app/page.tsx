@@ -1953,21 +1953,32 @@ RULES:
     chunks.forEach(chunk => {
       const persona = { title: "", goal: "", jtbd: "" };
 
-      const titleMatch = chunk.match(/PERSONA:\s*([^]*?)(?=\s*GOAL:|$)/i);
+      const titleMatch = chunk.match(/PERSONA:\s*([^]*?)(?=\s*GOAL:|JTBD:|$)/i);
       if (titleMatch) {
-        persona.title = titleMatch[1].trim().replace(/\s+/g, ' ');
+        let title = titleMatch[1].trim().replace(/\s+/g, ' ');
+        // Stop at common markers and cap length
+        title = title.split(/SIGNAL|BEHAVIORAL|TECHNOGRAPHIC|INTENT|CONTEXTUAL|BLIND|---/i)[0].trim();
+        persona.title = title.length > 100 ? title.substring(0, 100) : title;
       }
 
-      const goalMatch = chunk.match(/GOAL:\s*([^]*?)(?=\s*JTBD:|$)/i);
+      const goalMatch = chunk.match(/GOAL:\s*([^]*?)(?=\s*JTBD:|SIGNAL|$)/i);
       if (goalMatch) {
-        persona.goal = goalMatch[1].trim().replace(/\s+/g, ' ');
+        let goal = goalMatch[1].trim().replace(/\s+/g, ' ');
+        persona.goal = goal.length > 200 ? goal.substring(0, 200) + '...' : goal;
       }
 
       const jtbdMatch = chunk.match(/JTBD:\s*([^]*?)$/i);
       if (jtbdMatch) {
         let jtbd = jtbdMatch[1].trim();
-        jtbd = jtbd.split(/PERSONA:/i)[0].trim();
-        persona.jtbd = jtbd.replace(/\s+/g, ' ');
+        // Stop at common section markers that shouldn't be part of JTBD
+        jtbd = jtbd.split(/PERSONA:|SIGNAL\s*SYSTEM|BEHAVIORAL\s*SIGNAL|TECHNOGRAPHIC|INTENT\s*SIGNAL|CONTEXTUAL|BLIND\s*SPOT|---/i)[0].trim();
+        jtbd = jtbd.replace(/\s+/g, ' ');
+        // Guardrail: Cap JTBD at ~400 chars to prevent runaway content
+        if (jtbd.length > 400) {
+          const lastPeriod = jtbd.lastIndexOf('.', 400);
+          jtbd = lastPeriod > 200 ? jtbd.substring(0, lastPeriod + 1) : jtbd.substring(0, 400) + '...';
+        }
+        persona.jtbd = jtbd;
       }
 
       if (persona.title && persona.title.length > 2) {
@@ -2495,50 +2506,72 @@ Don't fake positives. Instead, frame paragraph 1 around potential: "The product 
 
     // Parse pillar content (new format with multiple concepts)
     const parsedPillar: {title: string; angle: string; targetBuyer: string; dataFoundation: string; signalCapture: string; repurposing: string; cadence: string}[] = [];
-    const conceptBlocks = pillarRaw.split(/CONCEPT \d+:/i).filter((s: string) => s.trim());
-    conceptBlocks.forEach((block: string) => {
-      const titleMatch = block.match(/^([^\n]+)/);
-      const angleMatch = block.match(/THE ANGLE\s*([\s\S]*?)(?=TARGET BUYER|DATA FOUNDATION|$)/i);
-      const targetMatch = block.match(/TARGET BUYER\s*([\s\S]*?)(?=DATA FOUNDATION|SIGNAL CAPTURE|$)/i);
-      const dataMatch = block.match(/DATA FOUNDATION\s*([\s\S]*?)(?=SIGNAL CAPTURE|REPURPOSING|$)/i);
-      const signalMatch = block.match(/SIGNAL CAPTURE(?:\s*MECHANISM)?\s*([\s\S]*?)(?=REPURPOSING|CADENCE|$)/i);
-      const repurposeMatch = block.match(/REPURPOSING(?:\s*ROADMAP)?\s*([\s\S]*?)(?=CADENCE|$)/i);
-      const cadenceMatch = block.match(/CADENCE\s*([\s\S]*?)(?=---|CONCEPT|$)/i);
-      if (titleMatch) {
-        parsedPillar.push({
-          title: titleMatch[1].trim(),
-          angle: angleMatch ? angleMatch[1].trim() : '',
-          targetBuyer: targetMatch ? targetMatch[1].trim() : '',
-          dataFoundation: dataMatch ? dataMatch[1].trim() : '',
-          signalCapture: signalMatch ? signalMatch[1].trim() : '',
-          repurposing: repurposeMatch ? repurposeMatch[1].trim() : '',
-          cadence: cadenceMatch ? cadenceMatch[1].trim() : ''
-        });
-      }
-    });
+    // Skip parsing if the response looks like an error message
+    const isErrorResponse = pillarRaw.toLowerCase().includes('connection error') ||
+                           pillarRaw.toLowerCase().includes('failed to fetch') ||
+                           pillarRaw.toLowerCase().includes('error:') ||
+                           pillarRaw.length < 50;
+    if (!isErrorResponse) {
+      const conceptBlocks = pillarRaw.split(/CONCEPT \d+:/i).filter((s: string) => s.trim());
+      conceptBlocks.forEach((block: string) => {
+        const titleMatch = block.match(/^([^\n]+)/);
+        const angleMatch = block.match(/THE ANGLE\s*([\s\S]*?)(?=TARGET BUYER|DATA FOUNDATION|$)/i);
+        const targetMatch = block.match(/TARGET BUYER\s*([\s\S]*?)(?=DATA FOUNDATION|SIGNAL CAPTURE|$)/i);
+        const dataMatch = block.match(/DATA FOUNDATION\s*([\s\S]*?)(?=SIGNAL CAPTURE|REPURPOSING|$)/i);
+        const signalMatch = block.match(/SIGNAL CAPTURE(?:\s*MECHANISM)?\s*([\s\S]*?)(?=REPURPOSING|CADENCE|$)/i);
+        const repurposeMatch = block.match(/REPURPOSING(?:\s*ROADMAP)?\s*([\s\S]*?)(?=CADENCE|$)/i);
+        const cadenceMatch = block.match(/CADENCE\s*([\s\S]*?)(?=---|CONCEPT|$)/i);
+        // Require title AND at least one other field to be valid content (not an error)
+        const title = titleMatch ? titleMatch[1].trim() : '';
+        const hasValidContent = angleMatch || targetMatch || signalMatch;
+        const isNotError = !title.toLowerCase().includes('error') && !title.toLowerCase().includes('failed');
+        if (title && hasValidContent && isNotError) {
+          parsedPillar.push({
+            title,
+            angle: angleMatch ? angleMatch[1].trim() : '',
+            targetBuyer: targetMatch ? targetMatch[1].trim() : '',
+            dataFoundation: dataMatch ? dataMatch[1].trim() : '',
+            signalCapture: signalMatch ? signalMatch[1].trim() : '',
+            repurposing: repurposeMatch ? repurposeMatch[1].trim() : '',
+            cadence: cadenceMatch ? cadenceMatch[1].trim() : ''
+          });
+        }
+      });
+    }
     setPillarContent(parsedPillar);
 
     // Parse podcast guests (new format with archetypes, types, profiles)
     const parsedGuests: {archetype: string; guestType: string; profile: string; icpConnection: string; topic: string; strategicValue: string}[] = [];
-    const guestBlocks = podcastRaw.split(/GUEST \d+:/i).filter((s: string) => s.trim());
-    guestBlocks.forEach((block: string) => {
-      const archetypeMatch = block.match(/^([^\n]+)/);
-      const typeMatch = block.match(/TYPE:\s*([^\n]+)/i);
-      const profileMatch = block.match(/PROFILE\s*([\s\S]*?)(?=ICP CONNECTION|EPISODE TOPIC|$)/i);
-      const icpConnMatch = block.match(/ICP CONNECTION\s*([\s\S]*?)(?=EPISODE TOPIC|STRATEGIC VALUE|$)/i);
-      const topicMatch = block.match(/EPISODE TOPIC\s*([\s\S]*?)(?=STRATEGIC VALUE|$)/i);
-      const valueMatch = block.match(/STRATEGIC VALUE\s*([\s\S]*?)(?=---|GUEST|$)/i);
-      if (archetypeMatch) {
-        parsedGuests.push({
-          archetype: archetypeMatch[1].trim(),
-          guestType: typeMatch ? typeMatch[1].trim() : '',
-          profile: profileMatch ? profileMatch[1].trim() : '',
-          icpConnection: icpConnMatch ? icpConnMatch[1].trim() : '',
-          topic: topicMatch ? topicMatch[1].trim() : '',
-          strategicValue: valueMatch ? valueMatch[1].trim() : ''
-        });
-      }
-    });
+    // Skip parsing if the response looks like an error message
+    const isPodcastError = podcastRaw.toLowerCase().includes('connection error') ||
+                          podcastRaw.toLowerCase().includes('failed to fetch') ||
+                          podcastRaw.toLowerCase().includes('error:') ||
+                          podcastRaw.length < 50;
+    if (!isPodcastError) {
+      const guestBlocks = podcastRaw.split(/GUEST \d+:/i).filter((s: string) => s.trim());
+      guestBlocks.forEach((block: string) => {
+        const archetypeMatch = block.match(/^([^\n]+)/);
+        const typeMatch = block.match(/TYPE:\s*([^\n]+)/i);
+        const profileMatch = block.match(/PROFILE\s*([\s\S]*?)(?=ICP CONNECTION|EPISODE TOPIC|$)/i);
+        const icpConnMatch = block.match(/ICP CONNECTION\s*([\s\S]*?)(?=EPISODE TOPIC|STRATEGIC VALUE|$)/i);
+        const topicMatch = block.match(/EPISODE TOPIC\s*([\s\S]*?)(?=STRATEGIC VALUE|$)/i);
+        const valueMatch = block.match(/STRATEGIC VALUE\s*([\s\S]*?)(?=---|GUEST|$)/i);
+        // Require archetype AND at least profile or topic to be valid
+        const archetype = archetypeMatch ? archetypeMatch[1].trim() : '';
+        const hasValidContent = profileMatch || topicMatch;
+        const isNotError = !archetype.toLowerCase().includes('error') && !archetype.toLowerCase().includes('failed');
+        if (archetype && hasValidContent && isNotError) {
+          parsedGuests.push({
+            archetype,
+            guestType: typeMatch ? typeMatch[1].trim() : '',
+            profile: profileMatch ? profileMatch[1].trim() : '',
+            icpConnection: icpConnMatch ? icpConnMatch[1].trim() : '',
+            topic: topicMatch ? topicMatch[1].trim() : '',
+            strategicValue: valueMatch ? valueMatch[1].trim() : ''
+          });
+        }
+      });
+    }
     setPodcastGuests(parsedGuests);
 
     const finalReportData = {
