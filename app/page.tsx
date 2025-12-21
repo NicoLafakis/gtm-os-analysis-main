@@ -2163,6 +2163,25 @@ UNABLE TO ANALYZE: [brief reason — e.g., "domain parked", "holding company wit
       const result = productsResult.value;
       let parsed: string[] = [];
 
+      // Helper to clean markdown artifacts from product names
+      const cleanProductName = (text: string) => {
+        return text
+          .replace(/\*\*/g, '')           // Remove bold markers
+          .replace(/\*/g, '')             // Remove italic markers
+          .replace(/^[-•]\s*/, '')        // Remove bullet points
+          .replace(/^\s*None\.?\s*$/i, '') // Remove "None" entries
+          .trim();
+      };
+
+      // Validate product name is meaningful
+      const isValidProduct = (text: string) => {
+        const cleaned = cleanProductName(text);
+        return cleaned.length > 2 &&
+               cleaned.length < 100 &&
+               !/^[\*\-•\s\.\,]+$/.test(cleaned) &&  // Not just punctuation
+               !/^N\/A$/i.test(cleaned);              // Not N/A
+      };
+
       // Check if unable to analyze
       if (result.includes('UNABLE TO ANALYZE')) {
         setProducts([domain]);
@@ -2171,14 +2190,14 @@ UNABLE TO ANALYZE: [brief reason — e.g., "domain parked", "holding company wit
         // Extract COMPANY TYPE
         const typeMatch = result.match(/COMPANY TYPE:\s*(.+?)(?:\n|$)/i);
         if (typeMatch && typeMatch[1]) {
-          setCompanyType(typeMatch[1].trim());
+          setCompanyType(cleanProductName(typeMatch[1]));
         }
 
         // Extract PRIMARY OFFERING
         const primaryMatch = result.match(/PRIMARY OFFERING:\s*(.+?)(?:\n|$)/i);
         if (primaryMatch && primaryMatch[1]) {
-          const primary = primaryMatch[1].trim();
-          if (primary.length > 0 && primary.length < 100) {
+          const primary = cleanProductName(primaryMatch[1]);
+          if (isValidProduct(primary)) {
             parsed.push(primary);
             setPrimaryOffering(primary); // Store structured output per schema
           }
@@ -2190,8 +2209,8 @@ UNABLE TO ANALYZE: [brief reason — e.g., "domain parked", "holding company wit
           const numberedLines = additionalSection[0].match(/^\d+[\.\)]\s*.+$/gm);
           if (numberedLines && numberedLines.length > 0) {
             const additional = numberedLines
-              .map((line: string) => line.replace(/^\d+[\.\)]\s*/, '').trim())
-              .filter((line: string) => line.length > 0 && line.length < 100);
+              .map((line: string) => cleanProductName(line.replace(/^\d+[\.\)]\s*/, '')))
+              .filter((line: string) => isValidProduct(line));
             parsed = [...parsed, ...additional];
           }
         }
@@ -2201,8 +2220,8 @@ UNABLE TO ANALYZE: [brief reason — e.g., "domain parked", "holding company wit
           const numberedLines = result.match(/^\d+[\.\)]\s*.+$/gm);
           if (numberedLines && numberedLines.length > 0) {
             parsed = numberedLines
-              .map((line: string) => line.replace(/^\d+[\.\)]\s*/, '').trim())
-              .filter((line: string) => line.length > 0 && line.length < 100);
+              .map((line: string) => cleanProductName(line.replace(/^\d+[\.\)]\s*/, '')))
+              .filter((line: string) => isValidProduct(line));
           }
         }
 
@@ -2340,8 +2359,8 @@ EDGE CASES:
     // Extract BUYING COMMITTEE section and parse into structured array
     const committeeMatch = result.match(/BUYING COMMITTEE:[\s\S]*$/i);
     if (committeeMatch) {
-      // Parse each role block
-      const roleBlocks = committeeMatch[0].split(/\d+\.\s*ROLE:/i).filter((s: string) => s.trim());
+      // Parse each role block - skip first element (contains header text before first ROLE:)
+      const roleBlocks = committeeMatch[0].split(/\d+\.\s*ROLE:/i).filter((s: string) => s.trim()).slice(1);
       roleBlocks.forEach((block: string, i: number) => {
         const roleMatch = block.match(/^([^\n]+)/);
         const typeMatch = block.match(/TYPE:\s*([^\n]+)/i);
@@ -2350,6 +2369,14 @@ EDGE CASES:
 
         if (roleMatch) {
           const title = roleMatch[1].trim();
+
+          // Skip header-like entries that shouldn't be selectable
+          if (title.toUpperCase().includes('BUYING COMMITTEE') ||
+              title.toUpperCase().includes('KEY DECISION MAKER IN THE BUYING') ||
+              title.length < 3) {
+            return;
+          }
+
           const buyerType = typeMatch ? typeMatch[1].trim() : "";
           const pain = painMatch ? painMatch[1].trim() : "";
           const evalPriority = evalMatch ? evalMatch[1].trim() : "";
@@ -3239,14 +3266,9 @@ Don't fake positives. Instead, frame paragraph 1 around potential: "The product 
 
  const renderResults = () => {
     if (!reportData) return renderGenerating();
-    
-    const getContentGrade = () => {
-      const content = reportData.content || "";
-      const match = content.match(/CONTENT GRADE:\s*([A-F])/i);
-      return match ? match[1] : "?";
-    };
-    
-    const grade = getContentGrade();
+
+    // Use stored content grade from contentStrategyData instead of re-parsing
+    const grade = contentStrategyData.contentGrade || "?";
     const gradeColors: {[key: string]: string} = {
       "A": "text-green-400 border-green-400",
       "B": "text-green-300 border-green-300", 
@@ -3963,10 +3985,47 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
                     <div className="text-sm text-[#75716f]">Based on ICP alignment and presence</div>
                   </div>
                 </div>
-                <p className="text-[#aaa7a6] text-sm leading-relaxed">
-                  {cleanResponse(reportData.content).split('\n').slice(0, 3).join(' ').substring(0, 200)}...
-                </p>
+                {contentStrategyData.contentGradeRationale && (
+                  <p className="text-[#aaa7a6] text-sm leading-relaxed">
+                    {contentStrategyData.contentGradeRationale}
+                  </p>
+                )}
               </div>
+
+              {/* Priority Recommendations */}
+              {contentStrategyData.priorityRecommendations.length > 0 && (
+                <div className="mt-6 border-t border-[#3f3b3a] pt-6">
+                  <h4 className="font-semibold text-[#ff6f20] mb-2">Priority Recommendations</h4>
+                  <p className="text-[#75716f] text-sm mb-4">Actionable next steps ranked by potential impact</p>
+                  <div className="space-y-4">
+                    {contentStrategyData.priorityRecommendations.map((rec, i) => {
+                      const impactColors: Record<string, string> = {
+                        'HIGHEST IMPACT': 'border-[#ff6f20]/50 bg-gradient-to-r from-[#ff6f20]/15 to-transparent',
+                        'HIGH IMPACT': 'border-[#ffdd1f]/50 bg-gradient-to-r from-[#ffdd1f]/15 to-transparent',
+                        'MEDIUM IMPACT': 'border-[#5a5654]/50 bg-gradient-to-r from-[#5a5654]/15 to-transparent'
+                      };
+                      const badgeColors: Record<string, string> = {
+                        'HIGHEST IMPACT': 'bg-[#ff6f20] text-white',
+                        'HIGH IMPACT': 'bg-[#ffdd1f] text-[#070606]',
+                        'MEDIUM IMPACT': 'bg-[#5a5654] text-white'
+                      };
+                      return (
+                        <div key={i} className={`p-5 rounded-2xl border ${impactColors[rec.impact] || 'border-[#3f3b3a] bg-[#070606]/50'}`}>
+                          <div className="flex items-start gap-3">
+                            <span className={`px-2.5 py-1 rounded-lg text-xs font-bold whitespace-nowrap ${badgeColors[rec.impact] || 'bg-[#3f3b3a] text-white'}`}>
+                              {rec.impact}
+                            </span>
+                            <div className="flex-1">
+                              <div className="font-semibold text-white mb-2">{rec.title}</div>
+                              <p className="text-sm text-[#aaa7a6] leading-relaxed">{rec.explanation}</p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
