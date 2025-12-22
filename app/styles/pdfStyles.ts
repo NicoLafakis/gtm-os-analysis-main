@@ -1,0 +1,180 @@
+// GTM OS Builder - PDF Export Styles
+import { StyleSheet } from '@react-pdf/renderer';
+
+export const pdfStyles = StyleSheet.create({
+  page: {
+    backgroundColor: '#070606',
+    padding: 40,
+    fontFamily: 'Helvetica',
+    color: '#f9f9f9',
+  },
+  header: {
+    marginBottom: 30,
+    borderBottom: '2 solid #ff6f20',
+    paddingBottom: 20,
+  },
+  logo: {
+    width: 150,
+    marginBottom: 10,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#f9f9f9',
+    marginBottom: 5,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#ff6f20',
+    marginBottom: 5,
+  },
+  date: {
+    fontSize: 10,
+    color: '#75716f',
+  },
+  section: {
+    marginBottom: 25,
+    padding: 20,
+    backgroundColor: '#232120',
+    borderRadius: 8,
+    borderLeft: '3 solid #ff6f20',
+  },
+  sectionPurple: {
+    marginBottom: 25,
+    padding: 20,
+    backgroundColor: '#232120',
+    borderRadius: 8,
+    borderLeft: '3 solid #5b2e5e',
+  },
+  sectionYellow: {
+    marginBottom: 25,
+    padding: 20,
+    backgroundColor: '#232120',
+    borderRadius: 8,
+    borderLeft: '3 solid #ffdd1f',
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#ff6f20',
+    marginBottom: 10,
+  },
+  sectionTitlePurple: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#9a5d9d',
+    marginBottom: 10,
+  },
+  sectionTitleYellow: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#ffdd1f',
+    marginBottom: 10,
+  },
+  text: {
+    fontSize: 11,
+    color: '#dededd',
+    lineHeight: 1.6,
+    marginBottom: 8,
+  },
+  label: {
+    fontSize: 9,
+    color: '#75716f',
+    marginBottom: 2,
+  },
+  value: {
+    fontSize: 11,
+    color: '#aaa7a6',
+    marginBottom: 8,
+  },
+  signalCard: {
+    backgroundColor: '#070606',
+    padding: 12,
+    marginBottom: 10,
+    borderRadius: 6,
+    borderLeft: '2 solid #ff6f20',
+  },
+  signalName: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#f9f9f9',
+    marginBottom: 4,
+  },
+  signalImpact: {
+    fontSize: 9,
+    color: '#22c55e',
+    marginBottom: 6,
+  },
+  guestCard: {
+    backgroundColor: '#070606',
+    padding: 12,
+    marginBottom: 10,
+    borderRadius: 6,
+    borderLeft: '2 solid #ffdd1f',
+  },
+  guestName: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#f9f9f9',
+    marginBottom: 2,
+  },
+  guestCompany: {
+    fontSize: 10,
+    color: '#75716f',
+    marginBottom: 6,
+  },
+  programGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  programItem: {
+    width: '48%',
+    backgroundColor: '#070606',
+    padding: 12,
+    borderRadius: 6,
+    marginBottom: 10,
+  },
+  programTitle: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#f9f9f9',
+    marginBottom: 4,
+  },
+  programDesc: {
+    fontSize: 9,
+    color: '#75716f',
+  },
+  cta: {
+    marginTop: 30,
+    padding: 25,
+    backgroundColor: '#ff6f20',
+    borderRadius: 8,
+    textAlign: 'center',
+  },
+  ctaTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#f9f9f9',
+    marginBottom: 8,
+  },
+  ctaText: {
+    fontSize: 11,
+    color: '#f9f9f9',
+    marginBottom: 12,
+  },
+  ctaLink: {
+    fontSize: 12,
+    color: '#f9f9f9',
+    textDecoration: 'underline',
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 30,
+    left: 40,
+    right: 40,
+    textAlign: 'center',
+    fontSize: 9,
+    color: '#5a5654',
+  },
+});
