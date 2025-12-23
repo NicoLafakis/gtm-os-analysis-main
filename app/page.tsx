@@ -1396,7 +1396,7 @@ OUTPUT AS JSON with this schema:
           Build Your Signal-Driven GTM Operating System
         </h2>
 
-        <p className="text-[#e0dedc] mb-4 max-w-xl mx-auto leading-relaxed">
+        <p className="text-[#cecdcb] mb-4 max-w-xl mx-auto leading-relaxed">
           We&apos;ll analyze your business and get your feedback on key assumptions to create a complete signal-driven go-to-market system.
         </p>
 
@@ -1430,7 +1430,7 @@ OUTPUT AS JSON with this schema:
           </button>
         </div>
 
-        <p className="mt-6 text-sm text-[#d4d2d1]">5-7 minutes • AI-powered research • Actionable program</p>
+        <p className="mt-6 text-sm text-[#c2c0bf]">5-7 minutes • AI-powered research • Actionable program</p>
       </div>
     </div>
   );
@@ -1447,7 +1447,7 @@ OUTPUT AS JSON with this schema:
         <h2 className="font-bold text-2xl mb-2" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>
           Where should we send your report?
         </h2>
-        <p className="text-[#e0dedc] mb-8">We&apos;ll start analyzing <span className="text-white font-medium">{domain}</span> while you fill this out.</p>
+        <p className="text-[#cecdcb] mb-8">We&apos;ll start analyzing <span className="text-white font-medium">{domain}</span> while you fill this out.</p>
 
         <div className="grid gap-4 max-w-md mx-auto">
           <div className="grid grid-cols-2 gap-4">
@@ -1509,7 +1509,7 @@ OUTPUT AS JSON with this schema:
           </button>
         </div>
 
-        <p className="mt-6 text-xs text-[#d4d2d1] text-center">Your info stays private. We just need an email to send your personalized report.</p>
+        <p className="mt-6 text-xs text-[#c2c0bf] text-center">Your info stays private. We just need an email to send your personalized report.</p>
       </div>
     </div>
   );
@@ -1534,7 +1534,7 @@ OUTPUT AS JSON with this schema:
             <h3 className="font-semibold text-xl mb-2" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>
               {stage.text}
             </h3>
-            <p className="text-[#d4d2d1] text-sm mb-8">{stage.subtext}</p>
+            <p className="text-[#c2c0bf] text-sm mb-8">{stage.subtext}</p>
 
             {/* Progress dots */}
             <div className="flex justify-center gap-2 mb-8">
@@ -1550,7 +1550,7 @@ OUTPUT AS JSON with this schema:
             <div className="bg-[#070606]/50 border border-[#3f3b3a] rounded-xl p-4 max-w-md mx-auto">
               <div className="flex items-start gap-3">
                 <span className="text-[#ffdd1f] text-lg">💡</span>
-                <p className="text-sm text-[#e0dedc] text-left leading-relaxed">{insight}</p>
+                <p className="text-sm text-[#cecdcb] text-left leading-relaxed">{insight}</p>
               </div>
             </div>
           </div>
@@ -1599,7 +1599,7 @@ OUTPUT AS JSON with this schema:
           <div className="text-center py-12">
             <div className="w-12 h-12 border-4 border-[#3f3b3a] border-t-[#5b2e5e] rounded-full animate-spin mx-auto mb-5" />
             <h3 className="font-semibold text-xl mb-2">Discovering Your Buyers</h3>
-            <p className="text-[#d4d2d1]">Identifying ideal customer profiles for {selectedProduct}...</p>
+            <p className="text-[#c2c0bf]">Identifying ideal customer profiles for {selectedProduct}...</p>
           </div>
         </div>
       );
@@ -1611,7 +1611,7 @@ OUTPUT AS JSON with this schema:
           NARROW YOUR FOCUS
         </div>
         <h2 className="font-bold text-2xl mb-3">Who should we focus on?</h2>
-        <p className="text-[#e0dedc] mb-6">Select 1-3 ideal customer profiles. This helps us generate more targeted signals, content, and outreach strategies.</p>
+        <p className="text-[#cecdcb] mb-6">Select 1-3 ideal customer profiles. This helps us generate more targeted signals, content, and outreach strategies.</p>
 
         <div className="grid gap-3">
           {discoveredICPs.map((icp) => (
@@ -1638,7 +1638,7 @@ OUTPUT AS JSON with this schema:
                 </div>
                 <div>
                   <div className="font-semibold text-white">{stripMarkdown(icp.title)}</div>
-                  <div className="text-sm text-[#e0dedc] mt-1">{stripMarkdown(icp.description)}</div>
+                  <div className="text-sm text-[#cecdcb] mt-1">{stripMarkdown(icp.description)}</div>
                 </div>
               </div>
             </div>
@@ -1646,7 +1646,7 @@ OUTPUT AS JSON with this schema:
         </div>
 
         {selectedICPs.length > 0 && (
-          <div className="mt-4 text-sm text-[#d4d2d1]">
+          <div className="mt-4 text-sm text-[#c2c0bf]">
             {selectedICPs.length} of 3 max selected
           </div>
         )}
@@ -1838,7 +1838,7 @@ OUTPUT AS JSON with this schema:
           SIGNAL STACK
         </div>
         <h2 className="font-bold text-2xl mb-3">What signals do you currently track?</h2>
-        <p className="text-[#e0dedc] mb-6">Select your signal tools and the types of buying signals you monitor.</p>
+        <p className="text-[#cecdcb] mb-6">Select your signal tools and the types of buying signals you monitor.</p>
 
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-6">
           {signalVendors.map((v) => (
@@ -1870,7 +1870,7 @@ OUTPUT AS JSON with this schema:
               className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${selectedSignals.includes(s.id) ? "border-[#ff6f20] bg-[#ff6f20]/10" : "border-[#3f3b3a] bg-[#070606]/50 hover:border-[#ff6f20]/40"}`}
             >
               <div className="font-semibold text-sm">{s.label}</div>
-              <div className="text-xs text-[#d4d2d1]">{s.desc}</div>
+              <div className="text-xs text-[#c2c0bf]">{s.desc}</div>
             </div>
           ))}
         </div>
@@ -1882,7 +1882,7 @@ OUTPUT AS JSON with this schema:
           GTM ALIGNMENT
         </div>
         <h3 className="font-bold text-xl mb-3">How aligned is your GTM team?</h3>
-        <p className="text-[#e0dedc] mb-4">This helps us calibrate recommendations for your maturity level.</p>
+        <p className="text-[#cecdcb] mb-4">This helps us calibrate recommendations for your maturity level.</p>
 
         <div className="flex flex-col gap-2">
           {[
@@ -1903,7 +1903,7 @@ OUTPUT AS JSON with this schema:
               }`}
             >
               <div className="font-semibold">{opt.l}</div>
-              <div className="text-xs text-[#d4d2d1]">{opt.d}</div>
+              <div className="text-xs text-[#c2c0bf]">{opt.d}</div>
             </button>
           ))}
         </div>
@@ -2218,26 +2218,26 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
         <div className="bg-gradient-to-br from-[#232120] to-[#070606] border border-[#3f3b3a] rounded-3xl p-8">
           <div className="text-center mb-6">
             <h3 className="font-bold text-xl mb-2" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Your GTM Transformation</h3>
-            <p className="text-[#e0dedc] text-sm">Scroll to explore each dimension of your Signal-Driven GTM system</p>
+            <p className="text-[#cecdcb] text-sm">Scroll to explore each dimension of your Signal-Driven GTM system</p>
           </div>
 
           {/* Quick Stats Row */}
           <div className="grid grid-cols-4 gap-4">
             <div className="text-center p-4 bg-[#5b2e5e]/10 rounded-xl border border-[#5b2e5e]/20">
               <div className="text-2xl font-bold text-[#9a5d9d]">{selectedICPs.length || personas.length}</div>
-              <div className="text-xs text-[#d4d2d1]">Target Personas</div>
+              <div className="text-xs text-[#c2c0bf]">Target Personas</div>
             </div>
             <div className="text-center p-4 bg-[#ff6f20]/10 rounded-xl border border-[#ff6f20]/20">
               <div className="text-2xl font-bold text-[#ff6f20]">{alphaSignals.length}</div>
-              <div className="text-xs text-[#d4d2d1]">Alpha Signals</div>
+              <div className="text-xs text-[#c2c0bf]">Alpha Signals</div>
             </div>
             <div className="text-center p-4 bg-[#ffdd1f]/10 rounded-xl border border-[#ffdd1f]/20">
               <div className={`text-2xl font-bold ${gradeColors[grade]}`}>{grade}</div>
-              <div className="text-xs text-[#d4d2d1]">Content Grade</div>
+              <div className="text-xs text-[#c2c0bf]">Content Grade</div>
             </div>
             <div className="text-center p-4 bg-[#22c55e]/10 rounded-xl border border-[#22c55e]/20">
               <div className="text-2xl font-bold text-[#22c55e]">{podcastGuests.length}</div>
-              <div className="text-xs text-[#d4d2d1]">Podcast Guests</div>
+              <div className="text-xs text-[#c2c0bf]">Podcast Guests</div>
             </div>
           </div>
         </div>
@@ -2284,10 +2284,10 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
               </div>
               <div>
                 <h3 className="font-bold text-xl" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Targeting & ICP</h3>
-                <p className="text-sm text-[#d4d2d1]">From broad demographics to signal-driven personas</p>
+                <p className="text-sm text-[#c2c0bf]">From broad demographics to signal-driven personas</p>
               </div>
             </div>
-            <svg className={`w-5 h-5 text-[#d4d2d1] transition-transform duration-300 ${visibleSections.has('targeting') ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={`w-5 h-5 text-[#c2c0bf] transition-transform duration-300 ${visibleSections.has('targeting') ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
@@ -2301,9 +2301,9 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
                     <div className="w-6 h-6 rounded-full bg-[#ef4444]/20 flex items-center justify-center">
                       <span className="text-[#ef4444] text-sm">✗</span>
                     </div>
-                    <span className="text-[#e0dedc] font-medium uppercase text-xs tracking-wider">Current State</span>
+                    <span className="text-[#cecdcb] font-medium uppercase text-xs tracking-wider">Current State</span>
                   </div>
-                  <ul className="space-y-3 text-sm text-[#e0dedc]">
+                  <ul className="space-y-3 text-sm text-[#cecdcb]">
                     <li className="flex items-start gap-2">
                       <span className="text-[#ef4444] mt-1">•</span>
                       <span>Broad job title targeting with minimal behavioral data</span>
@@ -2351,16 +2351,16 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
                   {personas.map((p, i) => (
                     <div key={i} className="bg-[#5b2e5e]/10 border border-[#5b2e5e]/20 rounded-xl p-5">
                       <div className="flex items-start gap-4">
-                        <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-bold" style={{ backgroundColor: 'rgba(91, 46, 94, 0.35)', color: '#9a5d9d' }}>
+                        <div className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] rounded-full shrink-0 flex items-center justify-center text-sm font-bold" style={{ backgroundColor: 'rgba(91, 46, 94, 0.35)', color: '#9a5d9d' }}>
                           {i + 1}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="font-semibold text-white mb-1">{p.title}</div>
-                          {p.goal && <p className="text-sm text-[#e0dedc] mb-2">{p.goal}</p>}
+                          {p.goal && <p className="text-sm text-[#cecdcb] mb-2">{p.goal}</p>}
                           {p.jtbd && (
                             <div className="bg-black/20 rounded-lg p-3 mt-2">
                               <div className="text-xs text-[#9a5d9d] uppercase tracking-wide mb-1">Job to Be Done</div>
-                              <p className="text-sm text-[#e8e6e4] italic leading-relaxed">&ldquo;{p.jtbd}&rdquo;</p>
+                              <p className="text-sm text-[#d6d4d2] italic leading-relaxed">&ldquo;{p.jtbd}&rdquo;</p>
                             </div>
                           )}
                         </div>
@@ -2398,10 +2398,10 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
               </div>
               <div>
                 <h3 className="font-bold text-xl" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Signals & Intent</h3>
-                <p className="text-sm text-[#d4d2d1]">From reactive prospecting to predictive alpha signals</p>
+                <p className="text-sm text-[#c2c0bf]">From reactive prospecting to predictive alpha signals</p>
               </div>
             </div>
-            <svg className={`w-5 h-5 text-[#d4d2d1] transition-transform duration-300 ${visibleSections.has('signals') ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={`w-5 h-5 text-[#c2c0bf] transition-transform duration-300 ${visibleSections.has('signals') ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
@@ -2415,9 +2415,9 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
                     <div className="w-6 h-6 rounded-full bg-[#ef4444]/20 flex items-center justify-center">
                       <span className="text-[#ef4444] text-sm">✗</span>
                     </div>
-                    <span className="text-[#e0dedc] font-medium uppercase text-xs tracking-wider">Current State</span>
+                    <span className="text-[#cecdcb] font-medium uppercase text-xs tracking-wider">Current State</span>
                   </div>
-                  <ul className="space-y-3 text-sm text-[#e0dedc]">
+                  <ul className="space-y-3 text-sm text-[#cecdcb]">
                     <li className="flex items-start gap-2">
                       <span className="text-[#ef4444] mt-1">•</span>
                       <span>Reacting to inbound leads after competitors engage</span>
@@ -2462,12 +2462,12 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
               {alphaSignals.length > 0 && (
                 <div className="mt-6 border-t border-[#3f3b3a] pt-6">
                   <h4 className="font-semibold text-[#ff8f50] mb-4">Your Alpha Signals</h4>
-                  <p className="text-[#d4d2d1] text-sm mb-4">Buying indicators that predict intent before competitors notice</p>
+                  <p className="text-[#c2c0bf] text-sm mb-4">Buying indicators that predict intent before competitors notice</p>
                   <div className="space-y-4">
                     {alphaSignals.map((signal, i) => (
                       <div key={i} className="bg-gradient-to-r from-[#ff6f20]/10 to-transparent border border-[#ff6f20]/20 rounded-2xl p-5">
                         <div className="flex items-start gap-4 mb-3">
-                          <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-bold" style={{ backgroundColor: 'rgba(255, 111, 32, 0.35)', color: '#ff6f20' }}>
+                          <div className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] rounded-full shrink-0 flex items-center justify-center text-sm font-bold" style={{ backgroundColor: 'rgba(255, 111, 32, 0.35)', color: '#ff6f20' }}>
                             {i + 1}
                           </div>
                           <div className="flex-1 min-w-0">
@@ -2481,13 +2481,13 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                             {signal.source && (
                               <div>
-                                <span className="text-[#d4d2d1]">Source:</span>
+                                <span className="text-[#c2c0bf]">Source:</span>
                                 <span className="text-[#dededd] ml-2">{signal.source}</span>
                               </div>
                             )}
                             {signal.detection && (
                               <div>
-                                <span className="text-[#d4d2d1]">Detection:</span>
+                                <span className="text-[#c2c0bf]">Detection:</span>
                                 <span className="text-[#dededd] ml-2">{signal.detection}</span>
                               </div>
                             )}
@@ -2495,14 +2495,14 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
                         )}
                         {signal.motion && (
                           <div className="mt-3 pt-3 border-t border-[#3f3b3a]">
-                            <span className="text-[#d4d2d1] text-sm">Recommended Motion: </span>
+                            <span className="text-[#c2c0bf] text-sm">Recommended Motion: </span>
                             <span className="text-[#22c55e] text-sm font-medium">{signal.motion}</span>
                           </div>
                         )}
                         {signal.example && (
                           <div className="mt-2">
-                            <span className="text-[#d4d2d1] text-sm">Example: </span>
-                            <span className="text-[#e0dedc] text-sm italic">{signal.example}</span>
+                            <span className="text-[#c2c0bf] text-sm">Example: </span>
+                            <span className="text-[#cecdcb] text-sm italic">{signal.example}</span>
                           </div>
                         )}
                       </div>
@@ -2539,12 +2539,12 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
               </div>
               <div>
                 <h3 className="font-bold text-xl" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Content Strategy</h3>
-                <p className="text-sm text-[#d4d2d1]">From generic content to signal-triggered authority</p>
+                <p className="text-sm text-[#c2c0bf]">From generic content to signal-triggered authority</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <span className={`text-lg font-bold ${gradeColors[grade]}`}>{grade}</span>
-              <svg className={`w-5 h-5 text-[#d4d2d1] transition-transform duration-300 ${visibleSections.has('content') ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={`w-5 h-5 text-[#c2c0bf] transition-transform duration-300 ${visibleSections.has('content') ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </div>
@@ -2559,9 +2559,9 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
                     <div className="w-6 h-6 rounded-full bg-[#ef4444]/20 flex items-center justify-center">
                       <span className="text-[#ef4444] text-sm">✗</span>
                     </div>
-                    <span className="text-[#e0dedc] font-medium uppercase text-xs tracking-wider">Current State</span>
+                    <span className="text-[#cecdcb] font-medium uppercase text-xs tracking-wider">Current State</span>
                   </div>
-                  <ul className="space-y-3 text-sm text-[#e0dedc]">
+                  <ul className="space-y-3 text-sm text-[#cecdcb]">
                     <li className="flex items-start gap-2">
                       <span className="text-[#ef4444] mt-1">•</span>
                       <span>Content calendar based on internal schedules</span>
@@ -2606,12 +2606,12 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
               {pillarContent.length > 0 && (
                 <div className="mt-6 border-t border-[#3f3b3a] pt-6">
                   <h4 className="font-semibold text-[#ffdd1f] mb-4">Your Pillar Content Concepts</h4>
-                  <p className="text-[#d4d2d1] text-sm mb-4">High-value anchor assets that establish authority and capture intent signals</p>
+                  <p className="text-[#c2c0bf] text-sm mb-4">High-value anchor assets that establish authority and capture intent signals</p>
                   <div className="space-y-4">
                     {pillarContent.map((concept, i) => (
                       <div key={i} className="bg-gradient-to-r from-[#ffdd1f]/10 to-transparent border border-[#ffdd1f]/20 rounded-2xl p-5">
                         <div className="flex items-start gap-3 mb-3">
-                          <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: 'rgba(255, 221, 31, 0.35)', color: '#ffdd1f' }}>
+                          <div className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] rounded-full shrink-0 flex items-center justify-center text-sm font-bold" style={{ backgroundColor: 'rgba(255, 221, 31, 0.35)', color: '#ffdd1f' }}>
                             {i + 1}
                           </div>
                           <h5 className="font-bold text-lg text-white">{concept.title}</h5>
@@ -2622,20 +2622,20 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                           {concept.targetBuyer && (
                             <div>
-                              <span className="text-[#d4d2d1]">Target:</span>
+                              <span className="text-[#c2c0bf]">Target:</span>
                               <span className="text-[#dededd] ml-2">{concept.targetBuyer}</span>
                             </div>
                           )}
                           {concept.cadence && (
                             <div>
-                              <span className="text-[#d4d2d1]">Cadence:</span>
+                              <span className="text-[#c2c0bf]">Cadence:</span>
                               <span className="text-[#dededd] ml-2">{concept.cadence}</span>
                             </div>
                           )}
                         </div>
                         {concept.signalCapture && (
                           <div className="mt-3 pt-3 border-t border-[#3f3b3a]">
-                            <span className="text-[#d4d2d1] text-sm">Signal Capture: </span>
+                            <span className="text-[#c2c0bf] text-sm">Signal Capture: </span>
                             <span className="text-[#22c55e] text-sm">{concept.signalCapture}</span>
                           </div>
                         )}
@@ -2651,11 +2651,11 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
                   <div className={`text-3xl font-bold ${gradeColors[grade]}`}>{grade}</div>
                   <div>
                     <div className="font-medium text-white">Current Content Grade</div>
-                    <div className="text-sm text-[#d4d2d1]">Based on ICP alignment and presence</div>
+                    <div className="text-sm text-[#c2c0bf]">Based on ICP alignment and presence</div>
                   </div>
                 </div>
                 {contentStrategyData.contentGradeRationale && (
-                  <p className="text-[#e0dedc] text-sm leading-relaxed">
+                  <p className="text-[#cecdcb] text-sm leading-relaxed">
                     {contentStrategyData.contentGradeRationale}
                   </p>
                 )}
@@ -2665,7 +2665,7 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
               {contentStrategyData.priorityRecommendations.length > 0 && (
                 <div className="mt-6 border-t border-[#3f3b3a] pt-6">
                   <h4 className="font-semibold text-[#ff6f20] mb-2">Priority Recommendations</h4>
-                  <p className="text-[#d4d2d1] text-sm mb-4">Actionable next steps ranked by potential impact</p>
+                  <p className="text-[#c2c0bf] text-sm mb-4">Actionable next steps ranked by potential impact</p>
                   <div className="space-y-4">
                     {contentStrategyData.priorityRecommendations.map((rec, i) => {
                       const impactColors: Record<string, string> = {
@@ -2686,7 +2686,7 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
                             </span>
                             <div className="flex-1">
                               <div className="font-semibold text-white mb-2">{rec.title}</div>
-                              <p className="text-sm text-[#e0dedc] leading-relaxed">{rec.explanation}</p>
+                              <p className="text-sm text-[#cecdcb] leading-relaxed">{rec.explanation}</p>
                             </div>
                           </div>
                         </div>
@@ -2724,10 +2724,10 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
               </div>
               <div>
                 <h3 className="font-bold text-xl" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Outreach & Pipeline</h3>
-                <p className="text-sm text-[#d4d2d1]">From cold outreach to warm signal-driven connections</p>
+                <p className="text-sm text-[#c2c0bf]">From cold outreach to warm signal-driven connections</p>
               </div>
             </div>
-            <svg className={`w-5 h-5 text-[#d4d2d1] transition-transform duration-300 ${visibleSections.has('outreach') ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={`w-5 h-5 text-[#c2c0bf] transition-transform duration-300 ${visibleSections.has('outreach') ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
@@ -2741,9 +2741,9 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
                     <div className="w-6 h-6 rounded-full bg-[#ef4444]/20 flex items-center justify-center">
                       <span className="text-[#ef4444] text-sm">✗</span>
                     </div>
-                    <span className="text-[#e0dedc] font-medium uppercase text-xs tracking-wider">Current State</span>
+                    <span className="text-[#cecdcb] font-medium uppercase text-xs tracking-wider">Current State</span>
                   </div>
-                  <ul className="space-y-3 text-sm text-[#e0dedc]">
+                  <ul className="space-y-3 text-sm text-[#cecdcb]">
                     <li className="flex items-start gap-2">
                       <span className="text-[#ef4444] mt-1">•</span>
                       <span>High-volume cold outreach with low response rates</span>
@@ -2788,39 +2788,39 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
               {podcastGuests.length > 0 && (
                 <div className="mt-6 border-t border-[#3f3b3a] pt-6">
                   <h4 className="font-semibold text-[#22c55e] mb-4">Podcast Guest Suggestions</h4>
-                  <p className="text-sm text-[#e0dedc] mb-4">ICP-matching guests who expand your reach to ideal buyers</p>
+                  <p className="text-sm text-[#cecdcb] mb-4">ICP-matching guests who expand your reach to ideal buyers</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {podcastGuests.map((guest, i) => (
                       <div key={i} className="bg-gradient-to-r from-[#22c55e]/10 to-transparent border border-[#22c55e]/20 rounded-2xl p-5">
                         <div className="flex items-center gap-3 mb-3">
-                          <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: 'rgba(34, 197, 94, 0.35)', color: '#22c55e' }}>
+                          <div className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] rounded-full flex items-center justify-center text-sm font-bold shrink-0" style={{ backgroundColor: 'rgba(34, 197, 94, 0.35)', color: '#22c55e' }}>
                             {i + 1}
                           </div>
                           <div>
                             <h5 className="font-semibold text-white">{guest.archetype}</h5>
-                            <p className="text-[#d4d2d1] text-sm">{guest.guestType}</p>
+                            <p className="text-[#c2c0bf] text-sm">{guest.guestType}</p>
                           </div>
                         </div>
                         {guest.profile && (
-                          <p className="text-[#e0dedc] text-sm mb-3">{guest.profile}</p>
+                          <p className="text-[#cecdcb] text-sm mb-3">{guest.profile}</p>
                         )}
                         {(guest.icpConnection || guest.topic || guest.strategicValue) && (
                           <div className="space-y-2 text-sm">
                             {guest.icpConnection && (
                               <div>
                                 <span className="text-[#9a5d9d] font-medium">ICP Connection:</span>
-                                <span className="text-[#e0dedc] ml-2">{guest.icpConnection}</span>
+                                <span className="text-[#cecdcb] ml-2">{guest.icpConnection}</span>
                               </div>
                             )}
                             {guest.topic && (
                               <div>
                                 <span className="text-[#ff8f50] font-medium">Episode Topic:</span>
-                                <span className="text-[#e8e6e4] ml-2">{guest.topic}</span>
+                                <span className="text-[#d6d4d2] ml-2">{guest.topic}</span>
                               </div>
                             )}
                             {guest.strategicValue && (
                               <div className="mt-2 pt-2 border-t border-[#3f3b3a]">
-                                <span className="text-[#e8e6e4] italic text-sm leading-relaxed">{guest.strategicValue}</span>
+                                <span className="text-[#d6d4d2] italic text-sm leading-relaxed">{guest.strategicValue}</span>
                               </div>
                             )}
                           </div>
@@ -2842,7 +2842,7 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
             </div>
             <div>
               <h3 className="font-bold text-xl" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Your Signal-Driven GTM Program</h3>
-              <p className="text-sm text-[#d4d2d1]">Each element feeds the next — signals generate content, content builds trust, trust accelerates pipeline</p>
+              <p className="text-sm text-[#c2c0bf]">Each element feeds the next — signals generate content, content builds trust, trust accelerates pipeline</p>
             </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -2851,42 +2851,42 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
                 <svg className="w-5 h-5 text-[#9a5d9d]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
               </div>
               <h5 className="font-semibold text-white text-sm mb-1">VOC Program</h5>
-              <p className="text-xs text-[#d4d2d1]">25 ICP conversations</p>
+              <p className="text-xs text-[#c2c0bf]">25 ICP conversations</p>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
               <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-[#ff6f20]/20 flex items-center justify-center">
                 <svg className="w-5 h-5 text-[#ff6f20]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
               </div>
               <h5 className="font-semibold text-white text-sm mb-1">Social Listening</h5>
-              <p className="text-xs text-[#d4d2d1]">50 connections/month</p>
+              <p className="text-xs text-[#c2c0bf]">50 connections/month</p>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
               <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-[#ffdd1f]/20 flex items-center justify-center">
                 <svg className="w-5 h-5 text-[#ffdd1f]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
               </div>
               <h5 className="font-semibold text-white text-sm mb-1">ICP Podcasts</h5>
-              <p className="text-xs text-[#d4d2d1]">4 guest episodes</p>
+              <p className="text-xs text-[#c2c0bf]">4 guest episodes</p>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
               <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-[#22c55e]/20 flex items-center justify-center">
                 <svg className="w-5 h-5 text-[#22c55e]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
               </div>
               <h5 className="font-semibold text-white text-sm mb-1">Pillar Content</h5>
-              <p className="text-xs text-[#d4d2d1]">Signal-based reports</p>
+              <p className="text-xs text-[#c2c0bf]">Signal-based reports</p>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
               <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-[#ef4444]/20 flex items-center justify-center">
                 <svg className="w-5 h-5 text-[#ef4444]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
               </div>
               <h5 className="font-semibold text-white text-sm mb-1">Signal Sequences</h5>
-              <p className="text-xs text-[#d4d2d1]">Trigger-based outreach</p>
+              <p className="text-xs text-[#c2c0bf]">Trigger-based outreach</p>
             </div>
             <div className="bg-gradient-to-r from-[#ff6f20]/10 to-[#5b2e5e]/10 border border-[#ff6f20]/30 rounded-xl p-4 text-center">
               <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-gradient-to-r from-[#ff6f20]/30 to-[#5b2e5e]/30 flex items-center justify-center">
                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
               </div>
               <h5 className="font-semibold text-[#ff8f50] text-sm mb-1">HubSpot Enablement</h5>
-              <p className="text-xs text-[#d4d2d1]">Meeting prep & reporting</p>
+              <p className="text-xs text-[#c2c0bf]">Meeting prep & reporting</p>
             </div>
           </div>
         </div>
@@ -2903,10 +2903,10 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
                 <div className="w-8 h-8 rounded-lg bg-[#3f3b3a]/50 flex items-center justify-center text-sm">🏆</div>
                 <div>
                   <h3 className="font-bold text-lg" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>Competitive Landscape</h3>
-                  <p className="text-xs text-[#d4d2d1]">{competitors.length} competitors analyzed</p>
+                  <p className="text-xs text-[#c2c0bf]">{competitors.length} competitors analyzed</p>
                 </div>
               </div>
-              <svg className={`w-5 h-5 text-[#d4d2d1] transition-transform ${competitiveExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={`w-5 h-5 text-[#c2c0bf] transition-transform ${competitiveExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
@@ -2916,9 +2916,9 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
                   <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-4">
                     <div className="font-semibold text-white mb-2">{c.name}</div>
                     <div className="grid grid-cols-3 gap-2 text-xs">
-                      <div><span className="text-[#22c55e]">+</span> <span className="text-[#e0dedc]">{c.strength || "—"}</span></div>
-                      <div><span className="text-[#ef4444]">−</span> <span className="text-[#e0dedc]">{c.weakness || "—"}</span></div>
-                      <div><span className="text-[#ff6f20]">→</span> <span className="text-[#e0dedc]">{c.youWin || "—"}</span></div>
+                      <div><span className="text-[#22c55e]">+</span> <span className="text-[#cecdcb]">{c.strength || "—"}</span></div>
+                      <div><span className="text-[#ef4444]">−</span> <span className="text-[#cecdcb]">{c.weakness || "—"}</span></div>
+                      <div><span className="text-[#ff6f20]">→</span> <span className="text-[#cecdcb]">{c.youWin || "—"}</span></div>
                     </div>
                   </div>
                 ))}
@@ -2968,7 +2968,7 @@ ${podcastGuests.map((g, i) => `${i + 1}. ${g.archetype} (${g.guestType})\n   Pro
         <div className="text-center mb-8">
           <img src="https://smokesignals.ai/hs-fs/hubfs/Smoke_Signals/img/smokesignal-logo.png" alt="Smoke Signals AI" className="h-12 mx-auto mb-4" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           <h1 className="text-3xl font-bold" style={{ fontFamily: "var(--font-heading), 'Montserrat', sans-serif" }}>GTM Operating System Diagnostic</h1>
-          <p className="text-[#e0dedc] mt-2">Signal-driven analysis of your go-to-market engine</p>
+          <p className="text-[#cecdcb] mt-2">Signal-driven analysis of your go-to-market engine</p>
           {currentStep > 0 && (
             <button
               onClick={clearSession}
