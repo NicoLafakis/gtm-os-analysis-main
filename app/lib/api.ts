@@ -10,15 +10,24 @@
 export type ModelTier = 'haiku' | 'sonnet' | 'opus';
 
 const MODEL_IDS: Record<ModelTier, string> = {
-  haiku: 'claude-haiku-4-20250414',
-  sonnet: 'claude-sonnet-4-20250514',
-  opus: 'claude-opus-4-20250514'
+  haiku: 'claude-haiku-4-5-20251001',
+  sonnet: 'claude-sonnet-4-5-20250929',
+  opus: 'claude-opus-4-5-20251101'
 };
 
 interface CallClaudeOptions {
   model?: ModelTier;
   useWebSearch?: boolean;
   maxTokens?: number;
+}
+
+interface CallClaudeJSONOptions<T> extends CallClaudeOptions {
+  /** Schema description to help Claude understand the expected structure */
+  schema?: string;
+  /** Validation function to verify the parsed JSON matches expectations */
+  validate?: (data: unknown) => data is T;
+  /** Default value to return if parsing/validation fails */
+  fallback?: T;
 }
 
 /**
@@ -82,6 +91,132 @@ export async function callClaude(
     return textContent || "No response generated. Please try again.";
   } catch (error) {
     return "Connection error: " + ((error as Error).message || "Please check your internet and try again.");
+  }
+}
+
+/**
+ * Call Claude API and parse JSON response
+ * Returns typed, validated data - no text parsing needed
+ *
+ * @param prompt - The prompt (should request JSON output)
+ * @param options - Configuration including validation
+ * @returns Parsed and validated JSON data, or fallback/throws on failure
+ */
+export async function callClaudeJSON<T>(
+  prompt: string,
+  options: CallClaudeJSONOptions<T> = {}
+): Promise<T> {
+  const {
+    model = 'sonnet',
+    useWebSearch = true,
+    maxTokens,
+    schema,
+    validate,
+    fallback
+  } = options;
+
+  const defaultTokens = model === 'opus' ? 8000 : 4000;
+  const tokens = maxTokens ?? defaultTokens;
+
+  // Wrap prompt to enforce JSON output
+  const jsonPrompt = `${prompt}
+
+CRITICAL: Your response must be ONLY valid JSON. No markdown, no code blocks, no explanation.
+Start directly with { or [ and end with } or ].
+${schema ? `\nExpected schema:\n${schema}` : ''}`;
+
+  const finalPrompt = useWebSearch
+    ? `Use your web_search tool to research this request. Search the web first, then provide your analysis.\n\n${jsonPrompt}`
+    : jsonPrompt;
+
+  try {
+    const body: Record<string, unknown> = {
+      model: MODEL_IDS[model],
+      max_tokens: tokens,
+      messages: [{ role: "user", content: finalPrompt }]
+    };
+
+    if (useWebSearch) {
+      body.tools = [{ type: "web_search_20250305", name: "web_search" }];
+    }
+
+    const response = await fetch("/api/claude", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+      console.error("Claude API error:", response.status);
+      if (fallback !== undefined) return fallback;
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (data.error) {
+      console.error("Claude error:", data.error);
+      if (fallback !== undefined) return fallback;
+      throw new Error(data.error.message || "Unknown error");
+    }
+
+    // Extract text content
+    const textContent = (data.content || [])
+      .filter((block: {type: string}) => block.type === "text")
+      .map((block: {text: string}) => block.text)
+      .join("");
+
+    if (!textContent) {
+      if (fallback !== undefined) return fallback;
+      throw new Error("No response content");
+    }
+
+    // Clean up common issues: markdown code blocks, trailing content
+    let jsonStr = textContent.trim();
+
+    // Remove markdown code blocks if present
+    if (jsonStr.startsWith("```json")) {
+      jsonStr = jsonStr.slice(7);
+    } else if (jsonStr.startsWith("```")) {
+      jsonStr = jsonStr.slice(3);
+    }
+    if (jsonStr.endsWith("```")) {
+      jsonStr = jsonStr.slice(0, -3);
+    }
+    jsonStr = jsonStr.trim();
+
+    // Find the JSON object/array boundaries
+    const firstBrace = jsonStr.indexOf('{');
+    const firstBracket = jsonStr.indexOf('[');
+    const startIndex = firstBrace === -1 ? firstBracket :
+                       firstBracket === -1 ? firstBrace :
+                       Math.min(firstBrace, firstBracket);
+
+    if (startIndex > 0) {
+      jsonStr = jsonStr.slice(startIndex);
+    }
+
+    // Parse JSON
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(jsonStr);
+    } catch (parseError) {
+      console.error("JSON parse error:", parseError, "\nContent:", jsonStr.substring(0, 500));
+      if (fallback !== undefined) return fallback;
+      throw new Error("Invalid JSON response");
+    }
+
+    // Validate if validator provided
+    if (validate && !validate(parsed)) {
+      console.error("JSON validation failed:", parsed);
+      if (fallback !== undefined) return fallback;
+      throw new Error("Response failed validation");
+    }
+
+    return parsed as T;
+  } catch (error) {
+    console.error("callClaudeJSON error:", error);
+    if (fallback !== undefined) return fallback;
+    throw error;
   }
 }
 

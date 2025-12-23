@@ -1,5 +1,111 @@
 // GTM OS Builder - TypeScript Type Definitions
 
+// === API RESPONSE TYPES (JSON outputs from Claude) ===
+
+/** JSON response from ICP discovery prompt */
+export interface ICPDiscoveryResponse {
+  idealCompanyProfile: {
+    description: string;
+    companyStage: string;
+    companySize: string;
+    industryVerticals: string[];
+    keyCharacteristics: string[];
+  };
+  buyingCommittee: {
+    role: string;
+    type: 'Economic Buyer' | 'Champion' | 'Evaluator' | 'End User' | string;
+    painTrigger: string;
+    evaluationPriority: string;
+  }[];
+}
+
+/** JSON response from product extraction prompt */
+export interface ProductExtractionResponse {
+  companyType: string;
+  primaryOffering: string;
+  additionalOfferings: string[];
+}
+
+/** JSON response from alpha signals prompt */
+export interface AlphaSignalsResponse {
+  signals: {
+    name: string;
+    whyAlpha: string;
+    source: string;
+    detection: string;
+    motion: string;
+    example: string;
+  }[];
+}
+
+/** JSON response from pillar content prompt */
+export interface PillarContentResponse {
+  concepts: {
+    title: string;
+    angle: string;
+    targetBuyer: string;
+    dataFoundation: string;
+    signalCapture: string;
+    repurposing: string;
+    cadence: string;
+  }[];
+}
+
+/** JSON response from podcast guests prompt */
+export interface PodcastGuestsResponse {
+  guests: {
+    archetype: string;
+    guestType: string;
+    profile: string;
+    icpConnection: string;
+    topic: string;
+    strategicValue: string;
+  }[];
+}
+
+/** JSON response from ICP research prompt */
+export interface IcpResearchResponse {
+  jobsToBeDone: {
+    persona: string;
+    jtbd: string;
+  }[];
+  signalSystem: {
+    category: string;
+    signalName: string;
+    whatToDetect: string;
+    recommendedMotion: string;
+  }[];
+  signalBlindSpot: string;
+}
+
+/** JSON response from competitive analysis prompt */
+export interface CompetitiveAnalysisResponse {
+  competitiveLandscape: string;
+  competitors: {
+    name: string;
+    primaryStrength: string;
+    primaryWeakness: string;
+    battleground: string;
+  }[];
+  competitiveGaps: string;
+  defensibilityAssessment: string;
+}
+
+/** JSON response from content strategy prompt */
+export interface ContentStrategyResponse {
+  contentFootprint: string;
+  buyerAlignmentAudit: string;
+  signalOpportunityAssessment: string;
+  contentGrade: string;
+  contentGradeRationale: string;
+  priorityRecommendations: {
+    rank: number;
+    impact: string;
+    title: string;
+    explanation: string;
+  }[];
+}
+
 // === STRUCTURED DATA TYPES (Schema-aligned) ===
 
 export interface IdealCompanyProfile {

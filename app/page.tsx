@@ -27,6 +27,7 @@ import {
 } from './lib/prompts';
 import {
   callClaude,
+  callClaudeJSON,
   fetchLinkedInData,
   syncHubSpotContact,
 } from './lib/api';
@@ -46,6 +47,14 @@ import type {
   ReportData,
   ResearchState,
   Alignment,
+  ICPDiscoveryResponse,
+  ProductExtractionResponse,
+  AlphaSignalsResponse,
+  PillarContentResponse,
+  PodcastGuestsResponse,
+  IcpResearchResponse,
+  CompetitiveAnalysisResponse,
+  ContentStrategyResponse,
 } from './types';
 
 export default function Home() {
@@ -382,20 +391,52 @@ export default function Home() {
     setCompanyAnalysis(parseCompanyAnalysisFn(text));
   };
 
-  const handleParseIcpResearch = (text: string) => {
-    const { icpData, signalSystemSummary: summary, topSignals: top } = parseIcpResearchFn(text);
-    console.log("[Data Flow] ICP research parsed:", { jtbdCount: icpData.jtbdList.length, signalCount: icpData.signalSystem.length });
+  // JSON handlers for structured research phases
+  const handleIcpResearchJSON = (data: IcpResearchResponse) => {
+    const icpData: IcpResearchData = {
+      jtbdList: data.jobsToBeDone.map(j => ({ persona: j.persona, jtbd: j.jtbd })),
+      signalSystem: data.signalSystem.map(s => ({
+        category: s.category,
+        signalName: s.signalName,
+        whatToDetect: s.whatToDetect,
+        recommendedMotion: s.recommendedMotion
+      })),
+      signalBlindSpot: data.signalBlindSpot || ""
+    };
+    console.log("[Data Flow] ICP research JSON parsed:", { jtbdCount: icpData.jtbdList.length, signalCount: icpData.signalSystem.length });
     setIcpResearchData(icpData);
-    setSignalSystemSummary(summary);
-    setTopSignals(top);
+    setSignalSystemSummary(icpData.signalSystem.map(s => s.signalName));
+    setTopSignals(icpData.signalSystem.slice(0, 4));
   };
 
-  const handleParseCompetitiveAnalysis = (text: string) => {
-    setCompetitiveData(parseCompetitiveAnalysisFn(text));
+  const handleCompetitiveAnalysisJSON = (data: CompetitiveAnalysisResponse) => {
+    setCompetitiveData({
+      competitiveLandscape: data.competitiveLandscape || "",
+      competitorComparison: data.competitors.map(c => ({
+        competitor: c.name,
+        primaryStrength: c.primaryStrength,
+        primaryWeakness: c.primaryWeakness,
+        battleground: c.battleground
+      })),
+      competitiveGaps: data.competitiveGaps || "",
+      defensibilityAssessment: data.defensibilityAssessment || ""
+    });
   };
 
-  const handleParseContentStrategy = (text: string) => {
-    setContentStrategyData(parseContentStrategyFn(text));
+  const handleContentStrategyJSON = (data: ContentStrategyResponse) => {
+    setContentStrategyData({
+      contentFootprint: data.contentFootprint || "",
+      buyerAlignmentAudit: data.buyerAlignmentAudit || "",
+      signalOpportunityAssessment: data.signalOpportunityAssessment || "",
+      contentGrade: data.contentGrade || "",
+      contentGradeRationale: data.contentGradeRationale || "",
+      priorityRecommendations: data.priorityRecommendations.map((r, i) => ({
+        rank: r.rank || i + 1,
+        impact: r.impact || "MEDIUM IMPACT",
+        title: r.title || "",
+        explanation: r.explanation || ""
+      }))
+    });
   };
 
   // Helper to build prompt with parameters for each phase
@@ -443,31 +484,135 @@ export default function Home() {
   const runResearchPhase = async (phase: string) => {
     console.log(`[Data Flow] Starting ${phase} research phase`);
     setResearch(prev => ({ ...prev, [phase]: { ...prev[phase as keyof typeof prev], loading: true } }));
+
+    const hubspotFieldMap: Record<string, string> = {
+      company: "gtmos_company_research",
+      icp: "gtmos_icp_profile",
+      competitive: "gtmos_competitive_analysis",
+      content: "gtmos_content_strategy"
+    };
+
     try {
-      const result = await callClaude(buildPromptForPhase(phase));
-      console.log(`[Data Flow] ${phase} research completed, parsing results`);
-      setResearch(prev => ({ ...prev, [phase]: { ...prev[phase as keyof typeof prev], initial: result, loading: false } }));
+      // Company uses text output, others use JSON
+      if (phase === "company") {
+        const result = await callClaude(buildPromptForPhase(phase));
+        console.log(`[Data Flow] ${phase} research completed`);
+        setResearch(prev => ({ ...prev, [phase]: { ...prev[phase as keyof typeof prev], initial: result, loading: false } }));
+        handleParseCompanyAnalysis(result);
+        if (hubspotFieldMap[phase]) {
+          syncToHubSpot({ [hubspotFieldMap[phase]]: result.substring(0, 65000) }, `research-${phase}`);
+        }
+      } else if (phase === "icp") {
+        const data = await callClaudeJSON<IcpResearchResponse>(
+          buildPromptForPhase(phase) + `
 
-      // Parse structured data based on phase
-      if (phase === "company") handleParseCompanyAnalysis(result);
-      else if (phase === "icp") handleParseIcpResearch(result);
-      else if (phase === "competitive") handleParseCompetitiveAnalysis(result);
-      else if (phase === "content") handleParseContentStrategy(result);
+OUTPUT AS JSON with this schema:
+{
+  "jobsToBeDone": [{"persona": "Title", "jtbd": "When [situation], I want to [action], so I can [outcome]"}],
+  "signalSystem": [{"category": "Category", "signalName": "Name", "whatToDetect": "Detection criteria", "recommendedMotion": "Action"}],
+  "signalBlindSpot": "Description of missed signal opportunity"
+}`,
+          { model: 'sonnet', useWebSearch: true, fallback: { jobsToBeDone: [], signalSystem: [], signalBlindSpot: "" } }
+        );
+        console.log(`[Data Flow] ICP research JSON completed`);
+        // Format JSON for display
+        const displayText = formatIcpResearchForDisplay(data);
+        setResearch(prev => ({ ...prev, [phase]: { ...prev[phase as keyof typeof prev], initial: displayText, loading: false } }));
+        handleIcpResearchJSON(data);
+        if (hubspotFieldMap[phase]) {
+          syncToHubSpot({ [hubspotFieldMap[phase]]: displayText.substring(0, 65000) }, `research-${phase}`);
+        }
+      } else if (phase === "competitive") {
+        const data = await callClaudeJSON<CompetitiveAnalysisResponse>(
+          buildPromptForPhase(phase) + `
 
-      // Sync research data to HubSpot
-      const hubspotFieldMap: Record<string, string> = {
-        company: "gtmos_company_research",
-        icp: "gtmos_icp_profile",
-        competitive: "gtmos_competitive_analysis",
-        content: "gtmos_content_strategy"
-      };
-      if (hubspotFieldMap[phase]) {
-        syncToHubSpot({ [hubspotFieldMap[phase]]: result.substring(0, 65000) }, `research-${phase}`);
+OUTPUT AS JSON with this schema:
+{
+  "competitiveLandscape": "2-3 sentences about the competitive environment",
+  "competitors": [{"name": "Competitor", "primaryStrength": "Their advantage", "primaryWeakness": "Their weakness", "battleground": "Where you compete"}],
+  "competitiveGaps": "Market gaps and opportunities",
+  "defensibilityAssessment": "Assessment of competitive moat"
+}`,
+          { model: 'sonnet', useWebSearch: true, fallback: { competitiveLandscape: "", competitors: [], competitiveGaps: "", defensibilityAssessment: "" } }
+        );
+        console.log(`[Data Flow] Competitive research JSON completed`);
+        const displayText = formatCompetitiveForDisplay(data);
+        setResearch(prev => ({ ...prev, [phase]: { ...prev[phase as keyof typeof prev], initial: displayText, loading: false } }));
+        handleCompetitiveAnalysisJSON(data);
+        if (hubspotFieldMap[phase]) {
+          syncToHubSpot({ [hubspotFieldMap[phase]]: displayText.substring(0, 65000) }, `research-${phase}`);
+        }
+      } else if (phase === "content") {
+        const data = await callClaudeJSON<ContentStrategyResponse>(
+          buildPromptForPhase(phase) + `
+
+OUTPUT AS JSON with this schema:
+{
+  "contentFootprint": "What content assets exist",
+  "buyerAlignmentAudit": "Assessment of content vs buyer personas",
+  "signalOpportunityAssessment": "Content as signal generation mechanism",
+  "contentGrade": "A/B/C/D/F",
+  "contentGradeRationale": "2-3 sentences explaining the grade",
+  "priorityRecommendations": [{"rank": 1, "impact": "HIGHEST IMPACT", "title": "Rec title", "explanation": "Why this matters"}]
+}`,
+          { model: 'sonnet', useWebSearch: true, fallback: { contentFootprint: "", buyerAlignmentAudit: "", signalOpportunityAssessment: "", contentGrade: "", contentGradeRationale: "", priorityRecommendations: [] } }
+        );
+        console.log(`[Data Flow] Content research JSON completed`);
+        const displayText = formatContentStrategyForDisplay(data);
+        setResearch(prev => ({ ...prev, [phase]: { ...prev[phase as keyof typeof prev], initial: displayText, loading: false } }));
+        handleContentStrategyJSON(data);
+        if (hubspotFieldMap[phase]) {
+          syncToHubSpot({ [hubspotFieldMap[phase]]: displayText.substring(0, 65000) }, `research-${phase}`);
+        }
       }
-    } catch {
-      console.error(`[Data Flow] ${phase} research failed`);
+    } catch (err) {
+      console.error(`[Data Flow] ${phase} research failed`, err);
       setResearch(prev => ({ ...prev, [phase]: { ...prev[phase as keyof typeof prev], initial: "Error loading data.", loading: false } }));
     }
+  };
+
+  // Format JSON responses for display in UI
+  const formatIcpResearchForDisplay = (data: IcpResearchResponse): string => {
+    let text = "JOBS TO BE DONE\n\n";
+    data.jobsToBeDone.forEach(j => {
+      text += `PERSONA: ${j.persona}\nJTBD: ${j.jtbd}\n\n`;
+    });
+    text += "SIGNAL SYSTEM\n\n";
+    let currentCategory = "";
+    data.signalSystem.forEach(s => {
+      if (s.category !== currentCategory) {
+        currentCategory = s.category;
+        text += `${s.category.toUpperCase()} SIGNALS\n`;
+      }
+      text += `${s.signalName} | ${s.whatToDetect} | ${s.recommendedMotion}\n`;
+    });
+    if (data.signalBlindSpot) {
+      text += `\nSIGNAL BLIND SPOT\n${data.signalBlindSpot}`;
+    }
+    return text;
+  };
+
+  const formatCompetitiveForDisplay = (data: CompetitiveAnalysisResponse): string => {
+    let text = `COMPETITIVE LANDSCAPE\n${data.competitiveLandscape}\n\n`;
+    text += "COMPETITOR COMPARISON\nCompetitor | Primary Strength | Primary Weakness | Battleground\n";
+    data.competitors.forEach(c => {
+      text += `${c.name} | ${c.primaryStrength} | ${c.primaryWeakness} | ${c.battleground}\n`;
+    });
+    text += `\nCOMPETITIVE GAPS\n${data.competitiveGaps}\n\n`;
+    text += `DEFENSIBILITY ASSESSMENT\n${data.defensibilityAssessment}`;
+    return text;
+  };
+
+  const formatContentStrategyForDisplay = (data: ContentStrategyResponse): string => {
+    let text = `CONTENT FOOTPRINT\n${data.contentFootprint}\n\n`;
+    text += `BUYER ALIGNMENT AUDIT\n${data.buyerAlignmentAudit}\n\n`;
+    text += `SIGNAL OPPORTUNITY ASSESSMENT\n${data.signalOpportunityAssessment}\n\n`;
+    text += `CONTENT GRADE\nGrade: ${data.contentGrade}\nRationale: ${data.contentGradeRationale}\n\n`;
+    text += "PRIORITY RECOMMENDATIONS\n";
+    data.priorityRecommendations.forEach(r => {
+      text += `${r.rank}. [${r.impact}] ${r.title}\n   ${r.explanation}\n\n`;
+    });
+    return text;
   };
 
   const formatResearchOutput = (text: string, type: string) => {
@@ -688,9 +833,10 @@ export default function Home() {
     // Fire ALL data fetching in parallel for speed
     const [productsResult, websiteResult, linkedInResult] = await Promise.allSettled([
       // 1. Fetch products/offerings via Claude (Haiku for fast extraction)
-      callClaude(`You are a B2B market research analyst conducting the first stage of a go-to-market diagnostic.
+      callClaudeJSON<ProductExtractionResponse>(
+        `You are a B2B market research analyst conducting the first stage of a go-to-market diagnostic.
 
-Given a company domain, identify what they sell and how to categorize their business. This output will be used to drive downstream analysis including ICP development, buying signal identification, content audits, and strategic content recommendations.
+Given a company domain, identify what they sell and how to categorize their business.
 
 DOMAIN: ${domain}
 
@@ -699,39 +845,35 @@ RESEARCH APPROACH:
 2. Secondary sources: G2, Capterra, Crunchbase, or LinkedIn company page for validation
 3. Focus on commercial offerings (what they sell to customers), NOT internal tools, tech stack, or integrations they consume
 
-ANALYSIS REQUIRED:
+COMPANY TYPE OPTIONS:
+- Product-Led SaaS
+- Sales-Led SaaS
+- Platform / Marketplace
+- Professional Services
+- Agency
+- Hybrid (Product + Services)
+- Other: [specify]
 
-1. COMPANY TYPE (select one):
-   - Product-Led SaaS
-   - Sales-Led SaaS
-   - Platform / Marketplace
-   - Professional Services
-   - Agency
-   - Hybrid (Product + Services)
-   - Other: [specify]
-
-2. PRIMARY OFFERING:
-   The core product or service that defines their business. One item only.
-
-3. ADDITIONAL OFFERINGS (if applicable):
-   Other distinct products, modules, or service lines. Maximum 6 items.
-   - Do NOT list pricing tiers (e.g., "Pro", "Enterprise") as separate items
-   - Do NOT list features as products
-   - For service businesses, list distinct service categories
-
-OUTPUT FORMAT:
-Return as structured text, no preamble:
-
-COMPANY TYPE: [selection]
-PRIMARY OFFERING: [name]
-ADDITIONAL OFFERINGS:
-1. [name]
-2. [name]
-...
-
-IF UNABLE TO DETERMINE:
-If the domain is parked, under construction, or you cannot confidently identify their offerings, return:
-UNABLE TO ANALYZE: [brief reason — e.g., "domain parked", "holding company with no public offerings", "pre-launch stealth mode"]`, { model: 'haiku' }),
+RULES:
+- Do NOT list pricing tiers (e.g., "Pro", "Enterprise") as separate offerings
+- Do NOT list features as products
+- For service businesses, list distinct service categories
+- Maximum 6 additional offerings`,
+        {
+          model: 'haiku',
+          useWebSearch: true,
+          schema: `{
+  "companyType": "One of: Product-Led SaaS, Sales-Led SaaS, Platform / Marketplace, Professional Services, Agency, Hybrid, Other",
+  "primaryOffering": "The core product or service name",
+  "additionalOfferings": ["other product 1", "other product 2"]
+}`,
+          fallback: {
+            companyType: "",
+            primaryOffering: domain,
+            additionalOfferings: []
+          }
+        }
+      ),
 
       // 2. Fetch website content via Firecrawl
       fetchWebsiteContent(domain),
@@ -740,75 +882,23 @@ UNABLE TO ANALYZE: [brief reason — e.g., "domain parked", "holding company wit
       fetchLinkedInData("generateQuery", { domain })
     ]);
 
-    // Process products result - parse new structured format
+    // Process products result - JSON response maps directly to state
     if (productsResult.status === 'fulfilled') {
       const result = productsResult.value;
-      let parsed: string[] = [];
 
-      // Helper to clean markdown artifacts from product names
-      const cleanProductName = (text: string) => {
-        return text
-          .replace(/\*\*/g, '')           // Remove bold markers
-          .replace(/\*/g, '')             // Remove italic markers
-          .replace(/^[-•]\s*/, '')        // Remove bullet points
-          .replace(/^\s*None\.?\s*$/i, '') // Remove "None" entries
-          .trim();
-      };
+      // Set company type from JSON
+      setCompanyType(result.companyType || "");
 
-      // Validate product name is meaningful
-      const isValidProduct = (text: string) => {
-        const cleaned = cleanProductName(text);
-        return cleaned.length > 2 &&
-               cleaned.length < 100 &&
-               !/^[\*\-•\s\.\,]+$/.test(cleaned) &&  // Not just punctuation
-               !/^N\/A$/i.test(cleaned);              // Not N/A
-      };
+      // Set primary offering
+      setPrimaryOffering(result.primaryOffering || domain);
 
-      // Check if unable to analyze
-      if (result.includes('UNABLE TO ANALYZE')) {
-        setProducts([domain]);
-        setCompanyType("");
-      } else {
-        // Extract COMPANY TYPE
-        const typeMatch = result.match(/COMPANY TYPE:\s*(.+?)(?:\n|$)/i);
-        if (typeMatch && typeMatch[1]) {
-          setCompanyType(cleanProductName(typeMatch[1]));
-        }
+      // Build products array: primary + additional offerings
+      const allProducts = [
+        result.primaryOffering,
+        ...(result.additionalOfferings || [])
+      ].filter(p => p && p.length > 2 && p.length < 100);
 
-        // Extract PRIMARY OFFERING
-        const primaryMatch = result.match(/PRIMARY OFFERING:\s*(.+?)(?:\n|$)/i);
-        if (primaryMatch && primaryMatch[1]) {
-          const primary = cleanProductName(primaryMatch[1]);
-          if (isValidProduct(primary)) {
-            parsed.push(primary);
-            setPrimaryOffering(primary); // Store structured output per schema
-          }
-        }
-
-        // Extract ADDITIONAL OFFERINGS (numbered list)
-        const additionalSection = result.match(/ADDITIONAL OFFERINGS:[\s\S]*?(?=\n\n|$)/i);
-        if (additionalSection) {
-          const numberedLines = additionalSection[0].match(/^\d+[\.\)]\s*.+$/gm);
-          if (numberedLines && numberedLines.length > 0) {
-            const additional = numberedLines
-              .map((line: string) => cleanProductName(line.replace(/^\d+[\.\)]\s*/, '')))
-              .filter((line: string) => isValidProduct(line));
-            parsed = [...parsed, ...additional];
-          }
-        }
-
-        // Fallback: Try old numbered list format if new format not found
-        if (parsed.length === 0) {
-          const numberedLines = result.match(/^\d+[\.\)]\s*.+$/gm);
-          if (numberedLines && numberedLines.length > 0) {
-            parsed = numberedLines
-              .map((line: string) => cleanProductName(line.replace(/^\d+[\.\)]\s*/, '')))
-              .filter((line: string) => isValidProduct(line));
-          }
-        }
-
-        setProducts(parsed.length > 0 ? parsed.slice(0, 8) : [domain]);
-      }
+      setProducts(allProducts.length > 0 ? allProducts.slice(0, 8) : [domain]);
     } else {
       setProducts([domain]);
       setCompanyType("");
@@ -859,7 +949,42 @@ UNABLE TO ANALYZE: [brief reason — e.g., "domain parked", "holding company wit
   const discoverICPs = useCallback(async () => {
     if (!selectedProduct || !domain) return;
 
-    const result = await callClaude(`You are identifying the BUYER PERSONAS for a B2B product. Your job is to identify the specific JOB TITLES of people who buy this product.
+    // JSON schema for validation
+    const schema = `{
+  "idealCompanyProfile": {
+    "description": "2-3 sentence description of target company",
+    "companyStage": "e.g., Growth stage, Enterprise, SMB",
+    "companySize": "e.g., 50-200 employees",
+    "industryVerticals": ["industry1", "industry2"],
+    "keyCharacteristics": ["characteristic1", "characteristic2"]
+  },
+  "buyingCommittee": [
+    {
+      "role": "Specific Job Title (e.g., VP of Sales)",
+      "type": "Economic Buyer | Champion | Evaluator | End User",
+      "painTrigger": "Their specific problem",
+      "evaluationPriority": "What they care about when comparing"
+    }
+  ]
+}`;
+
+    const fallbackResponse: ICPDiscoveryResponse = {
+      idealCompanyProfile: {
+        description: "B2B companies seeking to improve their go-to-market effectiveness",
+        companyStage: "Growth",
+        companySize: "50-500 employees",
+        industryVerticals: ["Technology", "SaaS"],
+        keyCharacteristics: ["Revenue-focused", "Data-driven"]
+      },
+      buyingCommittee: [
+        { role: "Economic Buyer", type: "Economic Buyer", painTrigger: "Budget allocation decisions", evaluationPriority: "ROI and cost efficiency" },
+        { role: "Champion", type: "Champion", painTrigger: "Internal process inefficiencies", evaluationPriority: "Ease of implementation" },
+        { role: "Evaluator", type: "Evaluator", painTrigger: "Technical requirements", evaluationPriority: "Feature completeness" }
+      ]
+    };
+
+    const result = await callClaudeJSON<ICPDiscoveryResponse>(
+      `You are identifying the BUYER PERSONAS for a B2B product. Your job is to identify the specific JOB TITLES of people who buy this product.
 
 PRODUCT: ${selectedProduct}
 COMPANY: ${domain}
@@ -872,145 +997,47 @@ RESEARCH:
 - Check case studies for buyer titles mentioned
 - Search LinkedIn for people who use/implement this product
 
-OUTPUT FORMAT (follow EXACTLY):
+Return 3-5 buying committee members. Each "role" must be a real job title (2-5 words like "Sales Operations Manager" or "CISO"), not a description.`,
+      {
+        model: 'sonnet',
+        useWebSearch: true,
+        schema,
+        fallback: fallbackResponse
+      }
+    );
 
-IDEAL COMPANY PROFILE:
-[2-3 sentences describing the target company type]
+    // Map JSON response directly to state - no text parsing needed
+    const profile = result.idealCompanyProfile;
+    setIdealCompanyProfile({
+      companyStage: profile.companyStage || "",
+      companySize: profile.companySize || "",
+      industryVerticals: profile.industryVerticals || [],
+      keyCharacteristics: profile.keyCharacteristics || [],
+      rawText: profile.description || ""
+    });
 
-BUYING COMMITTEE:
+    // Map buying committee to ICPs and structured data
+    const parsedICPs = result.buyingCommittee.map((member, i) => ({
+      id: `icp-${i}`,
+      title: member.role,
+      description: `${member.type}${member.painTrigger ? ` - ${member.painTrigger}` : ""}`
+    }));
 
-1. ROLE: [Specific Job Title - e.g., "VP of Sales", "Director of IT", "Marketing Manager"]
-   TYPE: [Economic Buyer / Champion / Evaluator / End User]
-   PAIN TRIGGER: [Their specific problem]
-   EVALUATION PRIORITY: [What they care about when comparing]
+    const parsedCommittee = result.buyingCommittee.map(member => ({
+      role: member.role,
+      type: member.type,
+      painTrigger: member.painTrigger,
+      evaluationPriority: member.evaluationPriority
+    }));
 
-2. ROLE: [Another Specific Job Title]
-   TYPE: [type]
-   PAIN TRIGGER: [Their specific problem]
-   EVALUATION PRIORITY: [What they care about]
+    const extractedPainTriggers = result.buyingCommittee
+      .map(member => member.painTrigger)
+      .filter(Boolean);
 
-3. ROLE: [Another Specific Job Title]
-   TYPE: [type]
-   PAIN TRIGGER: [Their specific problem]
-   EVALUATION PRIORITY: [What they care about]
-
-Return 3-5 roles. Each ROLE must be a real job title (2-5 words like "Sales Operations Manager" or "CISO"), not a description.`);
-
-    // Parse ICPs from new BUYING COMMITTEE format
-    const parsedICPs: {id: string; title: string; description: string}[] = [];
-    const parsedCommittee: {role: string; type: string; painTrigger: string; evaluationPriority: string}[] = [];
-    const extractedPainTriggers: string[] = [];
-
-    // Extract IDEAL COMPANY PROFILE section and parse into structured object
-    const profileMatch = result.match(/IDEAL COMPANY PROFILE:?\s*\n([\s\S]*?)(?=\n\s*BUYING COMMITTEE|\n\s*$)/i);
-    if (profileMatch) {
-      const profileText = profileMatch[1].trim();
-      // Parse structured fields from the text
-      const stageMatch = profileText.match(/(?:stage|size)[:\s]*([^,\n]+)/i);
-      const sizeMatch = profileText.match(/(\d+[-–]\d+\s*employees|\d+\+?\s*employees)/i);
-      const verticalMatch = profileText.match(/(?:industr(?:y|ies)|vertical)[:\s]*([^,\n]+)/i);
-
-      setIdealCompanyProfile({
-        companyStage: stageMatch ? stageMatch[1].trim() : "",
-        companySize: sizeMatch ? sizeMatch[1].trim() : "",
-        industryVerticals: verticalMatch ? [verticalMatch[1].trim()] : [],
-        keyCharacteristics: [],
-        rawText: profileText
-      });
-    }
-
-    // Extract BUYING COMMITTEE section and parse into structured array
-    const committeeMatch = result.match(/BUYING COMMITTEE:[\s\S]*$/i);
-    if (committeeMatch) {
-      // Parse each role block - skip first element (contains header text before first ROLE:)
-      const roleBlocks = committeeMatch[0].split(/\d+\.\s*ROLE:/i).filter((s: string) => s.trim()).slice(1);
-      roleBlocks.forEach((block: string, i: number) => {
-        const roleMatch = block.match(/^([^\n]+)/);
-        const typeMatch = block.match(/TYPE:\s*([^\n]+)/i);
-        const painMatch = block.match(/PAIN TRIGGER:\s*([^\n]+)/i);
-        const evalMatch = block.match(/EVALUATION PRIORITY:\s*([^\n]+)/i);
-
-        if (roleMatch) {
-          const title = roleMatch[1].trim();
-
-          // Skip header-like entries that shouldn't be selectable
-          if (title.toUpperCase().includes('BUYING COMMITTEE') ||
-              title.toUpperCase().includes('KEY DECISION MAKER IN THE BUYING') ||
-              title.length < 3) {
-            return;
-          }
-
-          const buyerType = typeMatch ? typeMatch[1].trim() : "";
-          const pain = painMatch ? painMatch[1].trim() : "";
-          const evalPriority = evalMatch ? evalMatch[1].trim() : "";
-          const description = buyerType ? `${buyerType}${pain ? ` - ${pain}` : ""}` : pain;
-
-          if (title.length > 0 && title.length < 100) {
-            parsedICPs.push({
-              id: `icp-${i}`,
-              title: title,
-              description: description || "Key decision maker in the buying process"
-            });
-
-            // Store structured buying committee member
-            parsedCommittee.push({
-              role: title,
-              type: buyerType,
-              painTrigger: pain,
-              evaluationPriority: evalPriority
-            });
-
-            // Collect pain triggers for derived state
-            if (pain) {
-              extractedPainTriggers.push(pain);
-            }
-          }
-        }
-      });
-    }
-
-    // Fallback: Try old format (numbered list with dash) - but validate titles look like job roles
-    if (parsedICPs.length === 0) {
-      const lines = result.split('\n').filter((l: string) => l.trim());
-      lines.forEach((line: string, i: number) => {
-        const match = line.match(/^\d*\.?\s*([^-–]+)\s*[-–]\s*(.+)$/);
-        if (match) {
-          const title = match[1].trim();
-          // Validate this looks like a job title (short, not a sentence)
-          const looksLikeJobTitle = title.length < 50 &&
-            title.split(' ').length <= 6 &&
-            !title.includes(',') &&
-            !/^(In |The |A |An |For |With |HP|Their|This|That|These|Those)/i.test(title) &&
-            !/\d{2,}/.test(title); // No long numbers (like percentages)
-
-          if (looksLikeJobTitle) {
-            parsedICPs.push({
-              id: `icp-${i}`,
-              title: title,
-              description: match[2].trim()
-            });
-          }
-        }
-      });
-    }
-
-    if (parsedICPs.length > 0) {
-      setDiscoveredICPs(parsedICPs.slice(0, 6));
-      setPrimaryBuyerRole(parsedICPs[0].title);
-      // Store structured buying committee and derived pain triggers
-      setBuyingCommittee(parsedCommittee);
-      setPainTriggers(extractedPainTriggers);
-    } else {
-      // Fallback: generic ICPs
-      setDiscoveredICPs([
-        { id: 'icp-1', title: 'Economic Buyer', description: 'Executive with budget authority' },
-        { id: 'icp-2', title: 'Champion', description: 'Internal advocate who drives adoption' },
-        { id: 'icp-3', title: 'Evaluator', description: 'Hands-on user who tests solutions' }
-      ]);
-      setPrimaryBuyerRole('Economic Buyer');
-      setBuyingCommittee([]);
-      setPainTriggers([]);
-    }
+    setDiscoveredICPs(parsedICPs.slice(0, 6));
+    setPrimaryBuyerRole(parsedICPs[0]?.title || "Economic Buyer");
+    setBuyingCommittee(parsedCommittee);
+    setPainTriggers(extractedPainTriggers);
   }, [selectedProduct, domain, companyType]);
 
   useEffect(() => {
@@ -1138,148 +1165,149 @@ OUTPUT:
 IF THE PICTURE IS BLEAK:
 Don't fake positives. Instead, frame paragraph 1 around potential: "The product is there. The market is there. The GTM motion to connect them? That's what's missing." Then proceed honestly.`, { model: 'opus' }),
       // Alpha signals - research-based, Sonnet is fine
-      callClaude(getAlphaSignalsPrompt({
-        domain,
-        companyName,
-        selectedProduct,
-        companyType,
-        idealCompanyProfile,
-        buyingCommittee,
-        discoveredICPs,
-        painTriggers,
-        competitiveData,
-        signalSystemSummary
-      })),
+      callClaudeJSON<AlphaSignalsResponse>(
+        getAlphaSignalsPrompt({
+          domain,
+          companyName,
+          selectedProduct,
+          companyType,
+          idealCompanyProfile,
+          buyingCommittee,
+          discoveredICPs,
+          painTriggers,
+          competitiveData,
+          signalSystemSummary
+        }) + `
+
+OUTPUT AS JSON with this schema:
+{
+  "signals": [
+    {
+      "name": "Signal name",
+      "whyAlpha": "Why competitors miss this",
+      "source": "Detection source",
+      "detection": "What to look for",
+      "motion": "Action to take",
+      "example": "Specific example"
+    }
+  ]
+}`,
+        {
+          model: 'sonnet',
+          useWebSearch: true,
+          fallback: { signals: [] }
+        }
+      ),
       // Pillar content - strategic creative, use Opus
-      callClaude(getPillarContentPrompt({
-        domain,
-        companyName,
-        selectedProduct,
-        companyType,
-        idealCompanyProfile,
-        buyingCommittee,
-        discoveredICPs,
-        icpResearchData,
-        topSignals,
-        contentStrategyData,
-        competitiveData,
-        companyAnalysis
-      }), { model: 'opus' }),
+      callClaudeJSON<PillarContentResponse>(
+        getPillarContentPrompt({
+          domain,
+          companyName,
+          selectedProduct,
+          companyType,
+          idealCompanyProfile,
+          buyingCommittee,
+          discoveredICPs,
+          icpResearchData,
+          topSignals,
+          contentStrategyData,
+          competitiveData,
+          companyAnalysis
+        }) + `
+
+OUTPUT AS JSON with this schema:
+{
+  "concepts": [
+    {
+      "title": "Concept title",
+      "angle": "The angle/approach",
+      "targetBuyer": "Target persona and buying stage",
+      "dataFoundation": "Data sources and signal connections",
+      "signalCapture": "How to capture engagement signals",
+      "repurposing": "Content repurposing roadmap",
+      "cadence": "Update frequency and triggers"
+    }
+  ]
+}`,
+        {
+          model: 'opus',
+          useWebSearch: true,
+          fallback: { concepts: [] }
+        }
+      ),
       // Podcast guests - strategic creative, use Opus
-      callClaude(getPodcastGuestsPrompt({
-        domain,
-        companyName,
-        selectedProduct,
-        idealCompanyProfile,
-        buyingCommittee,
-        discoveredICPs,
-        icpResearchData,
-        contentStrategyData,
-        companyAnalysis,
-        topSignals
-      }), { model: 'opus' })
+      callClaudeJSON<PodcastGuestsResponse>(
+        getPodcastGuestsPrompt({
+          domain,
+          companyName,
+          selectedProduct,
+          idealCompanyProfile,
+          buyingCommittee,
+          discoveredICPs,
+          icpResearchData,
+          contentStrategyData,
+          companyAnalysis,
+          topSignals
+        }) + `
+
+OUTPUT AS JSON with this schema:
+{
+  "guests": [
+    {
+      "archetype": "Guest archetype title",
+      "guestType": "ICP Guest or Amplifier Guest",
+      "profile": "Role, company type, and characteristics",
+      "icpConnection": "Connection to buying committee or audience overlap",
+      "topic": "Episode topic",
+      "strategicValue": "Relationship, reach, and signal value"
+    }
+  ]
+}`,
+        {
+          model: 'opus',
+          useWebSearch: true,
+          fallback: { guests: [] }
+        }
+      )
     ]);
 
     const narrative = narrativeResult.status === 'fulfilled' ? narrativeResult.value : '';
-    const alphaRaw = alphaResult.status === 'fulfilled' ? alphaResult.value : '';
-    const pillarRaw = pillarResult.status === 'fulfilled' ? pillarResult.value : '';
-    const podcastRaw = podcastResult.status === 'fulfilled' ? podcastResult.value : '';
 
-    // Parse alpha signals (new format with WHY IT'S ALPHA, DETECTION PATTERN, RECOMMENDED MOTION)
-    const parsedSignals: {name: string; whyAlpha: string; source: string; detection: string; motion: string; example: string}[] = [];
-    const signalBlocks = alphaRaw.split(/SIGNAL \d+:/i).filter((s: string) => s.trim());
-    signalBlocks.forEach((block: string) => {
-      const nameMatch = block.match(/^[^\n]+/);
-      const whyAlphaMatch = block.match(/WHY IT'S ALPHA:\s*([^\n]+)/i);
-      const sourceMatch = block.match(/SOURCE:\s*([^\n]+)/i);
-      const detectionMatch = block.match(/DETECTION(?:\s*PATTERN)?:\s*([^\n]+)/i);
-      const motionMatch = block.match(/RECOMMENDED MOTION:\s*([^\n]+)/i);
-      const exampleMatch = block.match(/EXAMPLE:\s*([^\n]+)/i);
-      // Only include if it has actual signal data (source AND detection) - filters out AI preamble
-      const hasSource = sourceMatch && sourceMatch[1].trim().length > 0;
-      const hasDetection = detectionMatch && detectionMatch[1].trim().length > 0;
-      if (nameMatch && hasSource && hasDetection) {
-        parsedSignals.push({
-          name: nameMatch[0].trim(),
-          whyAlpha: whyAlphaMatch ? whyAlphaMatch[1].trim() : '',
-          source: sourceMatch[1].trim(),
-          detection: detectionMatch[1].trim(),
-          motion: motionMatch ? motionMatch[1].trim() : '',
-          example: exampleMatch ? exampleMatch[1].trim() : ''
-        });
-      }
-    });
-    setAlphaSignals(parsedSignals);
+    // JSON responses map directly to state - no text parsing needed
+    const alphaData = alphaResult.status === 'fulfilled' ? alphaResult.value : { signals: [] };
+    const pillarData = pillarResult.status === 'fulfilled' ? pillarResult.value : { concepts: [] };
+    const podcastData = podcastResult.status === 'fulfilled' ? podcastResult.value : { guests: [] };
 
-    // Parse pillar content (new format with multiple concepts)
-    const parsedPillar: {title: string; angle: string; targetBuyer: string; dataFoundation: string; signalCapture: string; repurposing: string; cadence: string}[] = [];
-    // Skip parsing if the response looks like an error message
-    const isErrorResponse = pillarRaw.toLowerCase().includes('connection error') ||
-                           pillarRaw.toLowerCase().includes('failed to fetch') ||
-                           pillarRaw.toLowerCase().includes('error:') ||
-                           pillarRaw.length < 50;
-    if (!isErrorResponse) {
-      const conceptBlocks = pillarRaw.split(/CONCEPT \d+:/i).filter((s: string) => s.trim());
-      conceptBlocks.forEach((block: string) => {
-        const titleMatch = block.match(/^([^\n]+)/);
-        const angleMatch = block.match(/THE ANGLE\s*([\s\S]*?)(?=TARGET BUYER|DATA FOUNDATION|$)/i);
-        const targetMatch = block.match(/TARGET BUYER\s*([\s\S]*?)(?=DATA FOUNDATION|SIGNAL CAPTURE|$)/i);
-        const dataMatch = block.match(/DATA FOUNDATION\s*([\s\S]*?)(?=SIGNAL CAPTURE|REPURPOSING|$)/i);
-        const signalMatch = block.match(/SIGNAL CAPTURE(?:\s*MECHANISM)?\s*([\s\S]*?)(?=REPURPOSING|CADENCE|$)/i);
-        const repurposeMatch = block.match(/REPURPOSING(?:\s*ROADMAP)?\s*([\s\S]*?)(?=CADENCE|$)/i);
-        const cadenceMatch = block.match(/CADENCE\s*([\s\S]*?)(?=---|CONCEPT|$)/i);
-        // Require title AND at least one other field to be valid content (not an error)
-        const title = titleMatch ? titleMatch[1].trim() : '';
-        const hasValidContent = angleMatch || targetMatch || signalMatch;
-        const isNotError = !title.toLowerCase().includes('error') && !title.toLowerCase().includes('failed');
-        if (title && hasValidContent && isNotError) {
-          parsedPillar.push({
-            title,
-            angle: angleMatch ? angleMatch[1].trim() : '',
-            targetBuyer: targetMatch ? targetMatch[1].trim() : '',
-            dataFoundation: dataMatch ? dataMatch[1].trim() : '',
-            signalCapture: signalMatch ? signalMatch[1].trim() : '',
-            repurposing: repurposeMatch ? repurposeMatch[1].trim() : '',
-            cadence: cadenceMatch ? cadenceMatch[1].trim() : ''
-          });
-        }
-      });
-    }
-    setPillarContent(parsedPillar);
+    // Map alpha signals from JSON
+    setAlphaSignals(alphaData.signals.map(s => ({
+      name: s.name || '',
+      whyAlpha: s.whyAlpha || '',
+      source: s.source || '',
+      detection: s.detection || '',
+      motion: s.motion || '',
+      example: s.example || ''
+    })));
 
-    // Parse podcast guests (new format with archetypes, types, profiles)
-    const parsedGuests: {archetype: string; guestType: string; profile: string; icpConnection: string; topic: string; strategicValue: string}[] = [];
-    // Skip parsing if the response looks like an error message
-    const isPodcastError = podcastRaw.toLowerCase().includes('connection error') ||
-                          podcastRaw.toLowerCase().includes('failed to fetch') ||
-                          podcastRaw.toLowerCase().includes('error:') ||
-                          podcastRaw.length < 50;
-    if (!isPodcastError) {
-      const guestBlocks = podcastRaw.split(/GUEST \d+:/i).filter((s: string) => s.trim());
-      guestBlocks.forEach((block: string) => {
-        const archetypeMatch = block.match(/^([^\n]+)/);
-        const typeMatch = block.match(/TYPE:\s*([^\n]+)/i);
-        const profileMatch = block.match(/PROFILE\s*([\s\S]*?)(?=ICP CONNECTION|EPISODE TOPIC|$)/i);
-        const icpConnMatch = block.match(/ICP CONNECTION\s*([\s\S]*?)(?=EPISODE TOPIC|STRATEGIC VALUE|$)/i);
-        const topicMatch = block.match(/EPISODE TOPIC\s*([\s\S]*?)(?=STRATEGIC VALUE|$)/i);
-        const valueMatch = block.match(/STRATEGIC VALUE\s*([\s\S]*?)(?=---|GUEST|$)/i);
-        // Require archetype AND at least profile or topic to be valid
-        const archetype = archetypeMatch ? archetypeMatch[1].trim() : '';
-        const hasValidContent = profileMatch || topicMatch;
-        const isNotError = !archetype.toLowerCase().includes('error') && !archetype.toLowerCase().includes('failed');
-        if (archetype && hasValidContent && isNotError) {
-          parsedGuests.push({
-            archetype,
-            guestType: typeMatch ? typeMatch[1].trim() : '',
-            profile: profileMatch ? profileMatch[1].trim() : '',
-            icpConnection: icpConnMatch ? icpConnMatch[1].trim() : '',
-            topic: topicMatch ? topicMatch[1].trim() : '',
-            strategicValue: valueMatch ? valueMatch[1].trim() : ''
-          });
-        }
-      });
-    }
-    setPodcastGuests(parsedGuests);
+    // Map pillar content from JSON
+    setPillarContent(pillarData.concepts.map(c => ({
+      title: c.title || '',
+      angle: c.angle || '',
+      targetBuyer: c.targetBuyer || '',
+      dataFoundation: c.dataFoundation || '',
+      signalCapture: c.signalCapture || '',
+      repurposing: c.repurposing || '',
+      cadence: c.cadence || ''
+    })));
+
+    // Map podcast guests from JSON
+    setPodcastGuests(podcastData.guests.map(g => ({
+      archetype: g.archetype || '',
+      guestType: g.guestType || '',
+      profile: g.profile || '',
+      icpConnection: g.icpConnection || '',
+      topic: g.topic || '',
+      strategicValue: g.strategicValue || ''
+    })));
 
     const finalReportData = {
       narrative,
@@ -1314,9 +1342,9 @@ Don't fake positives. Instead, frame paragraph 1 around potential: "The product 
             gtm_content_analysis: contentText.substring(0, 65000),
             gtm_narrative: cleanResponse(narrative).substring(0, 65000),
             gtm_diagnostic_date: new Date().toISOString().split('T')[0],
-            gtm_alpha_signals: JSON.stringify(parsedSignals).substring(0, 65000),
-            gtm_pillar_content: JSON.stringify(pillarContent).substring(0, 65000),
-            gtm_podcast_guests: JSON.stringify(parsedGuests).substring(0, 65000),
+            gtm_alpha_signals: JSON.stringify(alphaData.signals).substring(0, 65000),
+            gtm_pillar_content: JSON.stringify(pillarData.concepts).substring(0, 65000),
+            gtm_podcast_guests: JSON.stringify(podcastData.guests).substring(0, 65000),
             gtm_selected_icps: selectedICPs.join('; '),
             gtm_anysite_query: backgroundData.anysiteQuery || ''
           },
