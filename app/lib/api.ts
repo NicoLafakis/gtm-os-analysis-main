@@ -2,21 +2,67 @@
 // Pure functions for external API calls
 
 /**
- * Call Claude API via the proxy endpoint
- * Uses web search tool for research-based prompts
+ * Model tier for cost/quality optimization
+ * - haiku: Fast, cheap - extraction, refinement, simple tasks
+ * - sonnet: Balanced - research, analysis (default)
+ * - opus: Premium - synthesis, strategy, narrative generation
  */
-export async function callClaude(prompt: string): Promise<string> {
+export type ModelTier = 'haiku' | 'sonnet' | 'opus';
+
+const MODEL_IDS: Record<ModelTier, string> = {
+  haiku: 'claude-haiku-4-20250414',
+  sonnet: 'claude-sonnet-4-20250514',
+  opus: 'claude-opus-4-20250514'
+};
+
+interface CallClaudeOptions {
+  model?: ModelTier;
+  useWebSearch?: boolean;
+  maxTokens?: number;
+}
+
+/**
+ * Call Claude API via the proxy endpoint
+ * @param prompt - The prompt to send
+ * @param options - Configuration options
+ * @param options.model - Model tier: 'haiku' (fast/cheap), 'sonnet' (balanced), 'opus' (premium)
+ * @param options.useWebSearch - Whether to enable web search tool (default: true)
+ * @param options.maxTokens - Max tokens for response (default: 4000, 8000 for opus)
+ */
+export async function callClaude(
+  prompt: string,
+  options: CallClaudeOptions = {}
+): Promise<string> {
+  const {
+    model = 'sonnet',
+    useWebSearch = true,
+    maxTokens
+  } = options;
+
+  // Opus gets more tokens by default for comprehensive synthesis
+  const defaultTokens = model === 'opus' ? 8000 : 4000;
+  const tokens = maxTokens ?? defaultTokens;
+
   try {
-    const searchPrompt = `Use your web_search tool to research this request. Search the web first, then provide your analysis.\n\n${prompt}`;
+    const finalPrompt = useWebSearch
+      ? `Use your web_search tool to research this request. Search the web first, then provide your analysis.\n\n${prompt}`
+      : prompt;
+
+    const body: Record<string, unknown> = {
+      model: MODEL_IDS[model],
+      max_tokens: tokens,
+      messages: [{ role: "user", content: finalPrompt }]
+    };
+
+    // Only add web search tool if enabled
+    if (useWebSearch) {
+      body.tools = [{ type: "web_search_20250305", name: "web_search" }];
+    }
+
     const response = await fetch("/api/claude", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 4000,
-        tools: [{ type: "web_search_20250305", name: "web_search" }],
-        messages: [{ role: "user", content: searchPrompt }]
-      })
+      body: JSON.stringify(body)
     });
 
     if (!response.ok) {

@@ -13,7 +13,8 @@
       "Bash(dir:*)",
       "Bash(git commit -m \"$\\(cat <<''EOF''\nFix parsing bugs and enhance content recommendations UI\n\n- Fix product parsing: strip markdown artifacts \\(**\\) and validate product names\n- Fix ICP parsing: filter out \"BUYING COMMITTEE\" header from selectable options\n- Fix content grade: use stored contentStrategyData.contentGrade instead of re-parsing\n- Add visual card layout for priority recommendations with impact color coding\n  - HIGHEST IMPACT: Orange border/badge\n  - HIGH IMPACT: Yellow border/badge\n  - MEDIUM IMPACT: Gray border/badge\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(node -e:*)",
-      "Bash(timeout /t 5 /nobreak)"
+      "Bash(timeout /t 5 /nobreak)",
+      "Bash(git add:*)"
     ]
   }
 }

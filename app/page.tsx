@@ -687,7 +687,7 @@ export default function Home() {
 
     // Fire ALL data fetching in parallel for speed
     const [productsResult, websiteResult, linkedInResult] = await Promise.allSettled([
-      // 1. Fetch products/offerings via Claude
+      // 1. Fetch products/offerings via Claude (Haiku for fast extraction)
       callClaude(`You are a B2B market research analyst conducting the first stage of a go-to-market diagnostic.
 
 Given a company domain, identify what they sell and how to categorize their business. This output will be used to drive downstream analysis including ICP development, buying signal identification, content audits, and strategic content recommendations.
@@ -731,7 +731,7 @@ ADDITIONAL OFFERINGS:
 
 IF UNABLE TO DETERMINE:
 If the domain is parked, under construction, or you cannot confidently identify their offerings, return:
-UNABLE TO ANALYZE: [brief reason — e.g., "domain parked", "holding company with no public offerings", "pre-launch stealth mode"]`),
+UNABLE TO ANALYZE: [brief reason — e.g., "domain parked", "holding company with no public offerings", "pre-launch stealth mode"]`, { model: 'haiku' }),
 
       // 2. Fetch website content via Firecrawl
       fetchWebsiteContent(domain),
@@ -1145,7 +1145,8 @@ OUTPUT:
 ---
 
 IF THE PICTURE IS BLEAK:
-Don't fake positives. Instead, frame paragraph 1 around potential: "The product is there. The market is there. The GTM motion to connect them? That's what's missing." Then proceed honestly.`),
+Don't fake positives. Instead, frame paragraph 1 around potential: "The product is there. The market is there. The GTM motion to connect them? That's what's missing." Then proceed honestly.`, { model: 'opus' }),
+      // Alpha signals - research-based, Sonnet is fine
       callClaude(getAlphaSignalsPrompt({
         domain,
         companyName,
@@ -1158,6 +1159,7 @@ Don't fake positives. Instead, frame paragraph 1 around potential: "The product 
         competitiveData,
         signalSystemSummary
       })),
+      // Pillar content - strategic creative, use Opus
       callClaude(getPillarContentPrompt({
         domain,
         companyName,
@@ -1171,7 +1173,8 @@ Don't fake positives. Instead, frame paragraph 1 around potential: "The product 
         contentStrategyData,
         competitiveData,
         companyAnalysis
-      })),
+      }), { model: 'opus' }),
+      // Podcast guests - strategic creative, use Opus
       callClaude(getPodcastGuestsPrompt({
         domain,
         companyName,
@@ -1183,7 +1186,7 @@ Don't fake positives. Instead, frame paragraph 1 around potential: "The product 
         contentStrategyData,
         companyAnalysis,
         topSignals
-      }))
+      }), { model: 'opus' })
     ]);
 
     const narrative = narrativeResult.status === 'fulfilled' ? narrativeResult.value : '';
