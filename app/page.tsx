@@ -859,61 +859,42 @@ UNABLE TO ANALYZE: [brief reason — e.g., "domain parked", "holding company wit
   const discoverICPs = useCallback(async () => {
     if (!selectedProduct || !domain) return;
 
-    const result = await callClaude(`You are a B2B go-to-market strategist conducting buyer analysis as part of a GTM diagnostic.
+    const result = await callClaude(`You are identifying the BUYER PERSONAS for a B2B product. Your job is to identify the specific JOB TITLES of people who buy this product.
 
-Given a company, their business type, and a specific product, identify who buys this product and how purchase decisions are made. This output will drive buying signal identification, content strategy, and outreach targeting.
+PRODUCT: ${selectedProduct}
+COMPANY: ${domain}
+COMPANY TYPE: ${companyType || "B2B Company"}
 
-INPUTS:
-- DOMAIN: ${domain}
-- COMPANY TYPE: ${companyType || "B2B Company"}
-- PRODUCT: ${selectedProduct}
+IMPORTANT: Return ACTUAL JOB TITLES (like "VP of Sales", "IT Director", "RevOps Manager"), NOT market segments or company descriptions.
 
-RESEARCH APPROACH:
-1. Company's website: /customers, /case-studies, /about, /solutions pages
-2. Third-party validation: G2 reviews, Capterra, TrustRadius (look at reviewer titles)
-3. LinkedIn: Search for people who mention using or implementing this product
-4. Job postings: Roles that mention this product as a required/preferred tool
+RESEARCH:
+- Look at G2/Capterra reviewer titles
+- Check case studies for buyer titles mentioned
+- Search LinkedIn for people who use/implement this product
 
-ANALYSIS REQUIRED:
+OUTPUT FORMAT (follow EXACTLY):
 
-1. IDEAL COMPANY PROFILE
-   Describe the type of company most likely to buy this product:
-   - Company stage/size (startup, SMB, mid-market, enterprise)
-   - Industry verticals (if specific)
-   - Key characteristics (e.g., "has a sales team of 10+", "processes high transaction volume")
-
-2. BUYING COMMITTEE
-   Identify 3-5 roles involved in the purchase decision. For each:
-
-   ROLE: [Title]
-   TYPE: [Economic Buyer / Champion / Evaluator / End User]
-   PAIN TRIGGER: [What problem makes them search for a solution]
-   EVALUATION PRIORITY: [What they care about most when comparing options]
-
-OUTPUT FORMAT:
-Return as structured text, no preamble.
-
----
 IDEAL COMPANY PROFILE:
-[2-3 sentences describing the target company]
+[2-3 sentences describing the target company type]
 
 BUYING COMMITTEE:
 
-1. ROLE: [Title]
+1. ROLE: [Specific Job Title - e.g., "VP of Sales", "Director of IT", "Marketing Manager"]
    TYPE: [Economic Buyer / Champion / Evaluator / End User]
-   PAIN TRIGGER: [1 sentence]
-   EVALUATION PRIORITY: [1 sentence]
+   PAIN TRIGGER: [Their specific problem]
+   EVALUATION PRIORITY: [What they care about when comparing]
 
-2. ROLE: [Title]
+2. ROLE: [Another Specific Job Title]
    TYPE: [type]
-   PAIN TRIGGER: [1 sentence]
-   EVALUATION PRIORITY: [1 sentence]
----
+   PAIN TRIGGER: [Their specific problem]
+   EVALUATION PRIORITY: [What they care about]
 
-EDGE CASES:
-- If this is a product-led/self-serve product, the "buying committee" may be a single individual. Note this and describe that buyer in depth.
-- If insufficient data exists, return: INSUFFICIENT DATA: [reason] — and provide your best inference with a confidence note.
-- If the product appears to target consumers (B2C), return: B2C PRODUCT DETECTED — this diagnostic is designed for B2B companies.`);
+3. ROLE: [Another Specific Job Title]
+   TYPE: [type]
+   PAIN TRIGGER: [Their specific problem]
+   EVALUATION PRIORITY: [What they care about]
+
+Return 3-5 roles. Each ROLE must be a real job title (2-5 words like "Sales Operations Manager" or "CISO"), not a description.`);
 
     // Parse ICPs from new BUYING COMMITTEE format
     const parsedICPs: {id: string; title: string; description: string}[] = [];
@@ -988,17 +969,27 @@ EDGE CASES:
       });
     }
 
-    // Fallback: Try old format (numbered list with dash)
+    // Fallback: Try old format (numbered list with dash) - but validate titles look like job roles
     if (parsedICPs.length === 0) {
       const lines = result.split('\n').filter((l: string) => l.trim());
       lines.forEach((line: string, i: number) => {
         const match = line.match(/^\d*\.?\s*([^-–]+)\s*[-–]\s*(.+)$/);
         if (match) {
-          parsedICPs.push({
-            id: `icp-${i}`,
-            title: match[1].trim(),
-            description: match[2].trim()
-          });
+          const title = match[1].trim();
+          // Validate this looks like a job title (short, not a sentence)
+          const looksLikeJobTitle = title.length < 50 &&
+            title.split(' ').length <= 6 &&
+            !title.includes(',') &&
+            !/^(In |The |A |An |For |With |HP|Their|This|That|These|Those)/i.test(title) &&
+            !/\d{2,}/.test(title); // No long numbers (like percentages)
+
+          if (looksLikeJobTitle) {
+            parsedICPs.push({
+              id: `icp-${i}`,
+              title: title,
+              description: match[2].trim()
+            });
+          }
         }
       });
     }
