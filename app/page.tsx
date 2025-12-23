@@ -139,6 +139,7 @@ export default function Home() {
 
   // Report and HubSpot
   const [reportData, setReportData] = useState<ReportData | null>(null);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [contactId, setContactId] = useState<string | null>(null);
 
   // UI state
@@ -337,6 +338,7 @@ export default function Home() {
       content: { initial: "", feedback: "", refined: "", loading: false }
     });
     setReportData(null);
+    setIsGeneratingReport(false);
     setContactId(null);
     setProducts([]);
     setSelectedProduct("");
@@ -1043,7 +1045,8 @@ Return 3-5 buying committee members. Each "role" must be a real job title (2-5 w
   useEffect(() => {
     const step = steps[currentStep];
     // Note: "content" removed from auto-trigger - it's now chained to ICP data completion
-    const phases: {[key: string]: string} = { "research-company": "company", "research-competitive": "competitive" };
+    // Note: competitive analysis runs in background during "generating" step, not as a separate visible step
+    const phases: {[key: string]: string} = { "research-company": "company" };
     const currentPhase = phases[step];
 
     if (currentPhase) {
@@ -1056,16 +1059,13 @@ Return 3-5 buying committee members. Each "role" must be a real job title (2-5 w
       discoverICPs();
     }
 
-    // Run ICP research after ICPs are selected (when moving to company research)
-    if (step === "research-company" && domain) {
-      const companyData = research.company;
-      if (!companyData.initial && !companyData.loading) runResearchPhase("company");
-      // Also trigger ICP research in background
+    // Trigger ICP research in background when entering company research step
+    if (step === "research-company" && domain && selectedICPs.length > 0) {
       const icpData = research.icp;
-      if (!icpData.initial && !icpData.loading && selectedICPs.length > 0) runResearchPhase("icp");
+      if (!icpData.initial && !icpData.loading) runResearchPhase("icp");
     }
 
-    if (step === "generating" && !reportData) {
+    if (step === "generating" && !reportData && !isGeneratingReport) {
       // Run competitive analysis in background (not a visible step)
       const competitiveData = research.competitive;
       if (!competitiveData.initial && !competitiveData.loading) {
@@ -1088,6 +1088,7 @@ Return 3-5 buying committee members. Each "role" must be a real job title (2-5 w
   }, [currentStep, icpResearchData.jtbdList.length, research.content.initial, research.content.loading]);
 
   async function generateReport() {
+    setIsGeneratingReport(true);
     const getR = (k: string) => cleanResponse(research[k as keyof typeof research].refined || research[k as keyof typeof research].initial || "");
     const getCompetitive = () => research.competitive.refined || research.competitive.initial || "";
 
@@ -1369,6 +1370,7 @@ OUTPUT AS JSON with this schema:
     }, "report-complete");
 
     setCurrentStep(steps.indexOf("results"));
+    setIsGeneratingReport(false);
   }
 
   const renderStepIndicator = () => (
